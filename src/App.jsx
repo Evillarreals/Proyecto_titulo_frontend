@@ -58,7 +58,7 @@ export default function App() {
 
         {token && (
           <nav>
-            <Link to="/">Dashboard</Link> |{' '}
+            <Link to="/dashboard">Dashboard</Link> |{' '}
             <Link to="/clientas">Clientas</Link> |{' '}
             <Link to="/productos">Productos</Link> |{' '}
             <Link to="/servicios">Servicios</Link> |{' '}
@@ -72,7 +72,8 @@ export default function App() {
 
       <Routes>
         <Route path="/login" element={<Login />} />
-        <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>}/>
+        <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+        <Route path="/" element={<Navigate to="/dashboard" replace />} />
 
         {/* Clientas */}
         <Route path="/clientas" element={<ProtectedRoute><ClientasList /></ProtectedRoute>} />
