@@ -2,11 +2,10 @@
 import axios from "axios";
 
 const http = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || "http://localhost:3000",
+  baseURL: import.meta.env.VITE_API_URL || "proyectotitulobackend-production.up.railway.app",
   headers: { "Content-Type": "application/json" },
 });
 
-// Adjunta token en cada request (si existe)
 http.interceptors.request.use((config) => {
   const token = localStorage.getItem("token");
   if (token) config.headers.Authorization = `Bearer ${token}`;
