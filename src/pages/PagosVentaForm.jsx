@@ -44,7 +44,6 @@ export default function PagosVentaForm() {
 
   useEffect(() => {
     if (params?.id) fetchVenta(params.id);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [params?.id]);
 
   const onBuscarVenta = async (ev) => {
@@ -103,13 +102,11 @@ export default function PagosVentaForm() {
   const venta = ventaInfo?.venta ?? ventaInfo ?? null;
   const resumenBackend = ventaInfo?.resumenPago ?? null;
 
-  // Normalización nombres cliente/clienta + resumen mínimo
   const clienteNombre = venta?.cliente_nombre ?? venta?.clienta_nombre ?? "";
   const clienteApellido = venta?.cliente_apellido ?? venta?.clienta_apellido ?? "";
 
   const totalVentaNum = Number(venta?.total ?? 0) || 0;
 
-  // Si no viene resumenPago desde el backend, mostramos totales base (saldo = total - pagado si existiera)
   const totalPagadoNum =
     Number(resumenBackend?.totalPagado ?? venta?.total_pagado ?? venta?.totalPagado ?? 0) || 0;
 
@@ -122,7 +119,6 @@ export default function PagosVentaForm() {
     <div>
       <h1>Registrar pago de venta</h1>
 
-      {/* Buscar venta */}
       <form onSubmit={onBuscarVenta}>
         <fieldset>
           <legend>Buscar venta</legend>
@@ -152,7 +148,6 @@ export default function PagosVentaForm() {
 
       <hr />
 
-      {/* Info de la venta */}
       {venta && (
         <div>
           <h2>Resumen venta #{venta?.id_venta ?? ""}</h2>
@@ -181,7 +176,6 @@ export default function PagosVentaForm() {
         </div>
       )}
 
-      {/* Form pago */}
       <form onSubmit={onSubmit}>
         <fieldset>
           <legend>Datos del pago</legend>

@@ -13,7 +13,6 @@ function pad2(n) {
   return String(n).padStart(2, "0");
 }
 
-// Convierte "datetime-local" -> "YYYY-MM-DD HH:mm:ss"
 function datetimeLocalToSql(dtLocal) {
   if (!dtLocal) return "";
   const [date, time] = dtLocal.split("T");
@@ -21,7 +20,6 @@ function datetimeLocalToSql(dtLocal) {
   return `${date} ${time}:00`;
 }
 
-// Convierte SQL datetime o ISO -> value para input datetime-local
 function toDatetimeLocalValue(value) {
   if (!value) return "";
   const d = new Date(String(value).replace(" ", "T"));
@@ -35,7 +33,6 @@ function normalizeRole(r) {
   if (!r) return "";
   if (typeof r === "string") return r.toLowerCase();
   if (typeof r === "object") {
-    // por si viene como { nombre: "administradora" }
     if (r.nombre) return String(r.nombre).toLowerCase();
     if (r.rol) return String(r.rol).toLowerCase();
   }
@@ -60,11 +57,10 @@ export default function AtencionesEdit() {
   const [personalCatalogo, setPersonalCatalogo] = useState([]);
 
   const [idClienta, setIdClienta] = useState("");
-  const [idPersonal, setIdPersonal] = useState(""); // ✅ requerido si es admin
+  const [idPersonal, setIdPersonal] = useState("");
   const [fechaInicioLocal, setFechaInicioLocal] = useState("");
   const [trasladoMin, setTrasladoMin] = useState(0);
 
-  // servicios seleccionados (misma idea que items en venta)
   const [items, setItems] = useState([{ id_servicio: "", precio_aplicado: "" }]);
 
   const total = useMemo(() => {
@@ -117,7 +113,6 @@ export default function AtencionesEdit() {
       const personalArr = Array.isArray(resPersonal.data) ? resPersonal.data : [];
       setPersonalCatalogo(personalArr);
 
-      // Backend detalle: { atencion, servicios, pagos, resumenPago }
       const at = resAt.data?.atencion ?? null;
       const detServicios = Array.isArray(resAt.data?.servicios) ? resAt.data.servicios : [];
 
@@ -131,7 +126,6 @@ export default function AtencionesEdit() {
       setFechaInicioLocal(toDatetimeLocalValue(at.fecha_inicio));
       setTrasladoMin(Number(at.traslado_min ?? 0));
 
-      // ✅ importante: si backend exige id_personal cuando es admin, lo cargamos desde la atención
       setIdPersonal(String(at.id_personal ?? ""));
 
       if (detServicios.length > 0) {
@@ -154,7 +148,6 @@ export default function AtencionesEdit() {
 
   useEffect(() => {
     loadAll();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
   function validate() {
@@ -163,7 +156,6 @@ export default function AtencionesEdit() {
     if (!Number.isFinite(Number(trasladoMin)) || Number(trasladoMin) < 0)
       return "Traslado (min) inválido.";
 
-    // ✅ si es administradora, el backend exige id_personal
     if (isAdmin && !idPersonal)
       return "Campos obligatorios: id_personal (cuando el rol es administradora)";
 
@@ -200,7 +192,6 @@ export default function AtencionesEdit() {
         id_servicio: Number(it.id_servicio),
         precio_aplicado: Number(it.precio_aplicado),
       })),
-      // ✅ clave: si es admin, enviamos id_personal sí o sí
       ...(isAdmin ? { id_personal: Number(idPersonal) } : {}),
     };
 
@@ -253,7 +244,6 @@ export default function AtencionesEdit() {
             </select>
           </div>
 
-          {/* ✅ Solo administradora: debe elegir (o confirmar) el personal */}
           {isAdmin ? (
             <div style={{ marginTop: 10 }}>
               <label>Masoterapeuta (personal)</label>

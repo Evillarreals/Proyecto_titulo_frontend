@@ -17,21 +17,19 @@ export default function PersonalForm() {
     email: "",
   });
 
-  // múltiples roles (ids)
   const [rolesSelected, setRolesSelected] = useState([]);
 
   const [error, setError] = useState("");
 
-  // ✅ para mostrar credenciales temporales al crear
   const [created, setCreated] = useState(null); 
-  // created = { id_personal, email, password_temporal, must_change_password }
+ 
 
   useEffect(() => {
     let mounted = true;
 
     (async () => {
       try {
-        const { data } = await http.get("/roles"); // protegido admin
+        const { data } = await http.get("/roles");
         if (!mounted) return;
         setRoles(Array.isArray(data) ? data : []);
       } catch (e) {
@@ -97,13 +95,12 @@ export default function PersonalForm() {
       direccion: form.direccion.trim() ? form.direccion.trim() : null,
       telefono: form.telefono.trim(),
       email: form.email.trim(),
-      roles: rolesSelected, // el backend espera "roles" como array
+      roles: rolesSelected,
     };
 
     try {
       const res = await http.post("/personal", payload);
 
-      // ✅ tu backend responde password_temporal (y id_personal)
       const data = res?.data || {};
       setCreated({
         id_personal: data.id_personal,
@@ -152,7 +149,6 @@ export default function PersonalForm() {
 
       {error ? <p style={{ color: "red" }}>{error}</p> : null}
 
-      {/* ✅ Bloque para mostrar credenciales temporales */}
       {created ? (
         <div style={{ border: "1px solid #ccc", padding: 12, marginBottom: 12 }}>
           <h3>Personal creado</h3>

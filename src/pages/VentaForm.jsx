@@ -42,8 +42,6 @@ export default function VentaForm() {
         setClientas(Array.isArray(resClientas.data) ? resClientas.data : []);
         setProductos(Array.isArray(resProductos.data) ? resProductos.data : []);
 
-        // Intentar cargar personal para armar lista de vendedoras.
-        // Si el backend restringe /personal (403), dejamos fallback al usuario en sesión.
         try {
           const resPersonal = await http.get("/personal");
           const all = Array.isArray(resPersonal.data) ? resPersonal.data : [];
@@ -57,13 +55,11 @@ export default function VentaForm() {
 
           setVendedoras(vend);
 
-          // Si no hay seleccionada, intentamos default al usuario actual (si está en la lista)
           if (!idVendedora) {
             const found = vend.find((p) => String(p.id_personal) === String(user?.id_personal));
             if (found) setIdVendedora(String(found.id_personal));
           }
         } catch {
-          // fallback mínimo: solo el usuario logueado como opción
           if (user?.id_personal) {
             setVendedoras([
               {
@@ -91,7 +87,6 @@ export default function VentaForm() {
     return () => {
       alive = false;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   function getProductoById(id) {
@@ -157,7 +152,7 @@ export default function VentaForm() {
 
     const payload = {
       id_clienta: Number(idClienta),
-      id_personal: Number(idVendedora), // ✅ ahora viene desde el formulario
+      id_personal: Number(idVendedora),
       items: items.map((it) => ({
         id_producto: Number(it.id_producto),
         cantidad: Number(it.cantidad),

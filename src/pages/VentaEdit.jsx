@@ -19,7 +19,6 @@ export default function VentaEdit() {
     { id_producto: "", cantidad: 1, precio_unitario: 0 },
   ]);
 
-  // --- helpers ---
   function money(n) {
     const num = Number(n || 0);
     return num.toLocaleString("es-CL", { style: "currency", currency: "CLP" });
@@ -51,7 +50,6 @@ export default function VentaEdit() {
     setItems((prev) => prev.filter((_, i) => i !== idx));
   }
 
-  // Cargar: clientas + productos + venta
   useEffect(() => {
     let mounted = true;
 
@@ -72,10 +70,8 @@ export default function VentaEdit() {
         setClientas(resClientas.data || []);
         setProductos(resProductos.data || []);
 
-        // backend puede devolver plano o con wrapper (por si acaso)
         const v = resVenta.data?.venta ?? resVenta.data;
 
-        // id_cliente / items según tu backend de ventas/:id
         setIdCliente(String(v?.id_cliente ?? ""));
 
         const loadedItems = Array.isArray(v?.items) ? v.items : [];
@@ -105,7 +101,6 @@ export default function VentaEdit() {
     };
   }, [id]);
 
-  // Cuando selecciona un producto: autocompletar precio_unitario desde producto.precio (si existe)
   function onSelectProducto(idx, idProd) {
     const prod = productos.find((p) => String(p.id_producto) === String(idProd));
     const precioSugerido =
@@ -122,7 +117,6 @@ export default function VentaEdit() {
     setError("");
     setOkMsg("");
 
-    // Validaciones mínimas
     if (!idCliente) return setError("Debes seleccionar una clienta");
     if (!items.length) return setError("Debes agregar al menos 1 producto");
 
@@ -149,11 +143,9 @@ export default function VentaEdit() {
         })),
       };
 
-      // Endpoint esperado: PUT /ventas/:id
       await http.put(`/ventas/${id}`, payload);
 
       setOkMsg("Venta actualizada");
-      // vuelve al detalle
       navigate(`/ventas/${id}`);
     } catch (e) {
       setError(e?.response?.data?.message || "Error al actualizar venta");

@@ -27,7 +27,6 @@ export default function ProductoEdit() {
     setErr("");
     try {
       const res = await http.get(`/productos/${id}`);
-      // soporta: plano o { producto } o { data }
       const p = res.data?.producto ?? res.data?.data ?? res.data;
 
       setForm({
@@ -47,7 +46,6 @@ export default function ProductoEdit() {
 
   useEffect(() => {
     fetchOne();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
   function validate() {

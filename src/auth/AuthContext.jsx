@@ -14,7 +14,6 @@ export function AuthProvider({ children }) {
     }
   });
 
-  // Persistencia
   useEffect(() => {
     if (token) localStorage.setItem("token", token);
     else localStorage.removeItem("token");
@@ -28,7 +27,6 @@ export function AuthProvider({ children }) {
   const login = async (email, password) => {
     const { data } = await http.post("/auth/login", { email, password });
 
-    // Se asume que backend devuelve { token, user }
     setToken(data.token || "");
     setUser(data.user || null);
 
@@ -46,7 +44,7 @@ export function AuthProvider({ children }) {
     () => ({
       token,
       user,
-      setUser, // <- IMPORTANTE
+      setUser,
       setToken,
       login,
       logout,

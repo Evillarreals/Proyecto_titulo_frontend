@@ -3,10 +3,7 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import http from "../api/http";
 
 function normalizeRolesFromApi(personalData) {
-  // Soporta:
-  // - personal.roles: [{id_rol, nombre}, ...]
-  // - personal.roles: [1,2]
-  // - personal.roles: ["administradora", ...] (no ideal)
+
   const roles = personalData?.roles;
   if (!roles) return [];
 
@@ -15,7 +12,7 @@ function normalizeRolesFromApi(personalData) {
     const first = roles[0];
 
     if (typeof first === "number") return roles.map(Number);
-    if (typeof first === "string") return []; // sin catálogo no mapeamos
+    if (typeof first === "string") return [];
 
     if (typeof first === "object" && first !== null) {
       return roles
@@ -47,7 +44,6 @@ export default function PersonalEdit() {
   const [telefono, setTelefono] = useState("");
   const [email, setEmail] = useState("");
 
-  // multi-rol (ids)
   const [rolesSeleccionados, setRolesSeleccionados] = useState([]);
 
   const rolesSeleccionadosSet = useMemo(
@@ -79,9 +75,6 @@ export default function PersonalEdit() {
       const rolesArr = Array.isArray(resRoles.data) ? resRoles.data : [];
       setRolesCatalogo(rolesArr);
 
-      // backend puede devolver:
-      // - objeto plano
-      // - { personal: {...}, roles: [...] }
       const p = resPersonal.data?.personal ?? resPersonal.data;
 
       if (!p) {
@@ -99,7 +92,6 @@ export default function PersonalEdit() {
 
       let idsRoles = normalizeRolesFromApi(p);
 
-      // si backend trae roles en raíz: { personal, roles }
       if ((!idsRoles || idsRoles.length === 0) && Array.isArray(resPersonal.data?.roles)) {
         idsRoles = resPersonal.data.roles
           .map((r) => r?.id_rol)
@@ -107,7 +99,6 @@ export default function PersonalEdit() {
           .map(Number);
       }
 
-      // mapeo por nombre si viniera ["administradora"] y tenemos catálogo
       if (
         (!idsRoles || idsRoles.length === 0) &&
         Array.isArray(p.roles) &&
@@ -134,7 +125,6 @@ export default function PersonalEdit() {
 
   useEffect(() => {
     loadAll();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
   function validate() {
@@ -162,7 +152,6 @@ export default function PersonalEdit() {
       return;
     }
 
-    // 1) datos generales (SIN roles)
     const payloadPersonal = {
       nombre: nombre.trim(),
       apellido: apellido.trim(),
@@ -172,18 +161,15 @@ export default function PersonalEdit() {
       email: email.trim(),
     };
 
-    // 2) roles (en endpoint dedicado)
     const payloadRoles = {
-      roles: rolesSeleccionados.map(Number), // backend espera { roles: [ids...] }
+      roles: rolesSeleccionados.map(Number),
     };
 
     try {
       setSaving(true);
 
-      // Paso 1: actualizar datos
       await http.put(`/personal/${id}`, payloadPersonal);
 
-      // Paso 2: actualizar roles
       await http.put(`/personal/${id}/roles`, payloadRoles);
 
       setOkMsg("Personal actualizado");

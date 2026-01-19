@@ -13,7 +13,7 @@ export default function ClientasList() {
     try {
       setLoading(true);
       setError("");
-      const { data } = await http.get("/clientas"); // trae TODAS
+      const { data } = await http.get("/clientas");
       setClientas(Array.isArray(data) ? data : []);
     } catch (e) {
       setError(e?.response?.data?.message || "No se pudieron cargar las clientas");
@@ -37,13 +37,11 @@ export default function ClientasList() {
     const id = c.id_clienta;
     if (!id) return;
 
-    // evita doble click/race conditions
     setBusyIds((prev) => new Set(prev).add(id));
     try {
       const nextActivo = Number(c.activo) === 1 ? 0 : 1;
       await http.put(`/clientas/${id}/activo`, { activo: nextActivo });
 
-      // refresco simple y seguro
       await fetchClientas();
     } catch (e) {
       alert(e?.response?.data?.message || "No se pudo cambiar el estado de la clienta");

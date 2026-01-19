@@ -28,7 +28,6 @@ export default function ClientaEdit() {
     try {
       const res = await http.get(`/clientas/${id}`);
 
-      // soporta: objeto plano o { clienta: {...} } o { data: {...} }
       const c = res.data?.clienta ?? res.data?.data ?? res.data;
 
       setForm({
@@ -48,7 +47,6 @@ export default function ClientaEdit() {
 
   useEffect(() => {
     fetchOne();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
   function validate() {
@@ -73,7 +71,6 @@ export default function ClientaEdit() {
     try {
       setSaving(true);
 
-      // PUT para actualizar campos editables
       await http.put(`/clientas/${id}`, {
         nombre: form.nombre.trim(),
         apellido: form.apellido.trim(),

@@ -31,7 +31,6 @@ export default function ProductoDetail() {
 
   useEffect(() => {
     fetchOne();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
   const producto = useMemo(() => {
@@ -94,9 +93,6 @@ export default function ProductoDetail() {
           <strong>Activo:</strong> {activoTxt}
         </p>
       )}
-
-      {/* Si después quieres, acá podemos mostrar advertencia:
-          stock <= stock_minimo => "Alerta: bajo stock" */}
     </div>
   );
 }

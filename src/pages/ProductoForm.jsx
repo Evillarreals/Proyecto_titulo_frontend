@@ -42,7 +42,6 @@ export default function ProductoForm() {
 
     const payload = {
       nombre: form.nombre.trim(),
-      // marca es opcional (si tu tabla la tiene)
       marca: form.marca.trim() || null,
       precio: Number(form.precio),
       stock: Number(form.stock),

@@ -41,9 +41,6 @@ export default function VentaDetail() {
       try {
         const res = await http.get(`/ventas/${id}`);
 
-        // Soportar 2 formatos:
-        // A) plano: { ...venta, items: [...], pagos: [...], resumenPago: {...} }
-        // B) anidado: { venta: {...}, items: [...], pagos: [...], resumenPago: {...} }
         const data = res.data ?? {};
         const v = data.venta ?? data;
         const its = data.items ?? v.items ?? [];
@@ -85,7 +82,6 @@ export default function VentaDetail() {
     const clienteEmail = venta.clienta_email ?? venta.email ?? null;
     const clienteDir = venta.clienta_direccion ?? venta.direccion ?? null;
 
-    // ✅ Vendedora (personal asociado a la venta)
     const vendedoraNombre = `${venta.personal_nombre ?? ""} ${venta.personal_apellido ?? ""}`.trim();
 
     const total = venta.total ?? venta.total_venta ?? venta.monto_total ?? 0;

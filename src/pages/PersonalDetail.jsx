@@ -3,11 +3,6 @@ import { Link, useParams } from "react-router-dom";
 import http from "../api/http";
 
 function rolesToList(personal) {
-  // Soporta varias formas típicas:
-  // 1) roles: ["administradora", "vendedora"]
-  // 2) roles: [{ nombre: "..." }, ...]
-  // 3) rol: "vendedora"
-  // 4) rol_nombre / role_name: "..."
   const r = personal?.roles;
 
   if (Array.isArray(r)) {
@@ -40,9 +35,6 @@ export default function PersonalDetail() {
     setErr("");
     try {
       const res = await http.get(`/personal/${id}`);
-      // Soporta:
-      // - objeto directo: { ...personal }
-      // - objeto envolviendo: { personal: {...} } o { data: {...} }
       const payload =
         (res.data?.personal ?? res.data?.data ?? res.data) || null;
       setData(payload);
@@ -56,7 +48,6 @@ export default function PersonalDetail() {
 
   useEffect(() => {
     fetchOne();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
   const roles = useMemo(() => rolesToList(data), [data]);

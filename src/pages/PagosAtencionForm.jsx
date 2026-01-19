@@ -44,7 +44,6 @@ export default function PagosAtencionForm() {
 
   useEffect(() => {
     if (params?.id) fetchAtencion(params.id);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [params?.id]);
 
   const onBuscarAtencion = async (ev) => {
@@ -99,15 +98,12 @@ export default function PagosAtencionForm() {
     }
   };
 
-  // Normaliza respuesta (plana o anidada)
   const atencion = atencionInfo?.atencion ?? atencionInfo ?? null;
   const resumenBackend = atencionInfo?.resumenPago ?? null;
 
-  // Normalización nombres cliente/clienta
   const clienteNombre = atencion?.cliente_nombre ?? atencion?.clienta_nombre ?? "";
   const clienteApellido = atencion?.cliente_apellido ?? atencion?.clienta_apellido ?? "";
 
-  // Total de la atención (según cómo lo esté devolviendo tu backend)
   const totalAtencionNum =
     Number(
       atencion?.total ??

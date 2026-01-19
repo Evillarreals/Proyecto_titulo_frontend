@@ -14,7 +14,6 @@ export default function ChangePassword() {
   const [ok, setOk] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // Si ya no debe cambiar contraseña, no tiene sentido quedarse aquí
   useEffect(() => {
     if (user && Number(user.must_change_password) === 0) {
       navigate("/", { replace: true });
@@ -42,7 +41,6 @@ export default function ChangePassword() {
     try {
       setLoading(true);
 
-      // ✅ IMPORTANTE: el backend espera camelCase
       const { data } = await http.post("/auth/change-password", {
         currentPassword,
         newPassword,
@@ -50,7 +48,6 @@ export default function ChangePassword() {
 
       setOk(data?.message || "Contraseña actualizada");
 
-      // Actualiza el usuario en contexto (y por AuthContext se persiste en localStorage)
       if (data?.user) {
         setUser(data.user);
       } else if (user) {

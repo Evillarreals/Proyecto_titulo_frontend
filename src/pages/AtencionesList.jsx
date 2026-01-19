@@ -22,7 +22,6 @@ function dayKey(fecha) {
   return `${dd}/${MM}/${yyyy}`;
 }
 
-// para comparar con <input type="date" /> (yyyy-mm-dd)
 function isoDay(fecha) {
   if (!fecha) return "";
   const d = new Date(fecha);
@@ -39,13 +38,11 @@ export default function AtencionesList() {
   const [err, setErr] = useState("");
   const [q, setQ] = useState("");
 
-  // ✅ filtros EXCLUSIVOS (solo ver...)
-  const [soloCerradas, setSoloCerradas] = useState(false); // realizada + pagado
-  const [soloCanceladas, setSoloCanceladas] = useState(false); // canceladas
+  const [soloCerradas, setSoloCerradas] = useState(false);
+  const [soloCanceladas, setSoloCanceladas] = useState(false);
 
-  // ✅ nuevos filtros combinables
-  const [fechaDia, setFechaDia] = useState(""); // yyyy-mm-dd
-  const [idMasoterapeuta, setIdMasoterapeuta] = useState(""); // string
+  const [fechaDia, setFechaDia] = useState("");
+  const [idMasoterapeuta, setIdMasoterapeuta] = useState("");
 
   const fetchAtenciones = async () => {
     try {
@@ -69,7 +66,6 @@ export default function AtencionesList() {
       const list = Array.isArray(data) ? data : data?.personal ?? [];
       setPersonal(list);
     } catch (e) {
-      // no bloquea la pantalla si falla; solo deja el select vacío
       console.error("Error cargando personal:", e);
       setPersonal([]);
     }
@@ -109,31 +105,25 @@ export default function AtencionesList() {
       const esCerrada = estadoAtencion === "realizada" && estadoPago === "pagado";
       const esCancelada = estadoAtencion === "cancelada";
 
-      // ✅ modo exclusivo: SOLO cerradas
       if (soloCerradas) {
         if (!esCerrada) return false;
       } else if (soloCanceladas) {
-        // ✅ modo exclusivo: SOLO canceladas
         if (!esCancelada) return false;
       } else {
-        // ✅ modo normal (por defecto): OCULTAR cerradas y canceladas
         if (esCerrada) return false;
         if (esCancelada) return false;
       }
 
-      // ✅ filtro por día exacto
       if (fechaDia) {
         const f = a?.fecha_inicio ?? a?.fecha ?? "";
         if (isoDay(f) !== fechaDia) return false;
       }
 
-      // ✅ filtro por masoterapeuta (id_personal)
       if (idMasoterapeuta) {
         const pid = String(a?.id_personal ?? "");
         if (pid !== String(idMasoterapeuta)) return false;
       }
 
-      // ✅ buscador
       if (!term) return true;
 
       const nombre = a?.cliente_nombre ?? a?.clienta_nombre ?? "";
@@ -146,8 +136,6 @@ export default function AtencionesList() {
         estadoPago.includes(term)
       );
     });
-
-    // ordenar por fecha ascendente
     const sorted = [...filtradas].sort((a, b) => {
       const fa = new Date(a?.fecha_inicio ?? a?.fecha ?? 0).getTime();
       const fb = new Date(b?.fecha_inicio ?? b?.fecha ?? 0).getTime();
@@ -167,7 +155,6 @@ export default function AtencionesList() {
     return Array.from(map.entries());
   }, [filteredAndSorted]);
 
-  // ✅ handlers exclusivos (si marco uno, desmarco el otro)
   function toggleSoloCerradas(checked) {
     setSoloCerradas(checked);
     if (checked) setSoloCanceladas(false);

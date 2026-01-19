@@ -20,13 +20,11 @@ function moneyCLP(v) {
   return `$${n.toFixed(0)}`;
 }
 
-// ✅ considera "pagado" y "pagada" (y variantes)
 function isPagoPagado(estadoPago) {
   const s = String(estadoPago ?? "").trim().toLowerCase();
-  return s.startsWith("pagad"); // pagado / pagada
+  return s.startsWith("pagad");
 }
 
-// ✅ parsea YYYY-MM-DD a inicio/fin de día local
 function startOfDayLocal(dateStr) {
   if (!dateStr) return null;
   const [y, m, d] = dateStr.split("-").map(Number);
@@ -45,15 +43,12 @@ export default function VentasList() {
   const [err, setErr] = useState("");
   const [items, setItems] = useState([]);
 
-  // ✅ checkbox: si está marcado, mostramos SOLO pagadas
   const [showPagadas, setShowPagadas] = useState(false);
 
-  // ✅ buscador por clienta
   const [qClienta, setQClienta] = useState("");
 
-  // ✅ filtro por fecha (día)
-  const [dateFrom, setDateFrom] = useState(""); // YYYY-MM-DD
-  const [dateTo, setDateTo] = useState(""); // YYYY-MM-DD
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState(""); 
 
   async function fetchAll() {
     setLoading(true);
@@ -78,14 +73,10 @@ export default function VentasList() {
   const filtered = useMemo(() => {
     let arr = [...items];
 
-    // ✅ filtro pagadas:
-    // - showPagadas = true  => SOLO pagadas
-    // - showPagadas = false => SOLO NO pagadas (pendiente/parcial/etc)
     arr = arr.filter((v) =>
       showPagadas ? isPagoPagado(v.estado_pago) : !isPagoPagado(v.estado_pago)
     );
 
-    // ✅ buscador por clienta (nombre+apellido)
     const q = qClienta.trim().toLowerCase();
     if (q) {
       arr = arr.filter((v) => {
@@ -96,7 +87,6 @@ export default function VentasList() {
       });
     }
 
-    // ✅ filtro por fecha (día, local)
     const fromMs = startOfDayLocal(dateFrom);
     const toMs = endOfDayLocal(dateTo);
     if (fromMs || toMs) {
@@ -110,7 +100,6 @@ export default function VentasList() {
       });
     }
 
-    // ✅ orden ascendente por fecha
     arr.sort((a, b) => {
       const da = new Date(a.fecha ?? a.fecha_venta ?? a.created_at ?? 0).getTime();
       const db = new Date(b.fecha ?? b.fecha_venta ?? b.created_at ?? 0).getTime();

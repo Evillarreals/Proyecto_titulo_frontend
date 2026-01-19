@@ -43,8 +43,6 @@ export default function AtencionForm() {
         setClientas(Array.isArray(resClientas.data) ? resClientas.data : []);
         setServicios(Array.isArray(resServicios.data) ? resServicios.data : []);
 
-        // Cargar personal para armar lista de masoterapeutas
-        // Si /personal está protegido y da 403, dejamos fallback a usuario logueado
         try {
           const resPersonal = await http.get("/personal");
           const all = Array.isArray(resPersonal.data) ? resPersonal.data : [];
@@ -60,14 +58,12 @@ export default function AtencionForm() {
 
           setMasoterapeutas(lista);
 
-          // Default: dejar seleccionado al usuario si aparece en la lista
           if (!idMasoterapeuta) {
             const found = lista.find((p) => String(p.id_personal) === String(user?.id_personal));
             if (found) setIdMasoterapeuta(String(found.id_personal));
             else if (lista.length > 0) setIdMasoterapeuta(String(lista[0].id_personal));
           }
         } catch {
-          // fallback mínimo: solo el usuario logueado como opción
           if (user?.id_personal) {
             setMasoterapeutas([
               {
@@ -95,7 +91,6 @@ export default function AtencionForm() {
     return () => {
       alive = false;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   function getServicioById(id) {
@@ -173,7 +168,7 @@ export default function AtencionForm() {
 
     const payload = {
       id_clienta: Number(idClienta),
-      id_personal: Number(idMasoterapeuta), // ✅ ahora viene desde el formulario
+      id_personal: Number(idMasoterapeuta),
       fecha_inicio: toBackendDateTime(fechaInicio),
       traslado_min: Number(trasladoMin || 0),
 

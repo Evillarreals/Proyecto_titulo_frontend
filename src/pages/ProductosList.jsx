@@ -18,7 +18,6 @@ export default function ProductosList() {
   const [items, setItems] = useState([]);
   const [q, setQ] = useState("");
 
-  // ✅ filtro: apagado = activos / encendido = inactivos
   const [showInactivos, setShowInactivos] = useState(false);
 
   async function fetchAll() {
@@ -39,7 +38,6 @@ export default function ProductosList() {
 
   useEffect(() => {
     fetchAll();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   async function toggleActivo(p) {
@@ -63,7 +61,6 @@ export default function ProductosList() {
     }
   }
 
-  // ✅ sumar stock rápido
   async function sumarStock(p) {
     const id = p.id_producto ?? p.id ?? p.producto_id;
     if (!id) return;
@@ -73,7 +70,7 @@ export default function ProductosList() {
       "1"
     );
 
-    if (input == null) return; // canceló
+    if (input == null) return;
 
     const cantidad = Number(input);
 
@@ -86,7 +83,6 @@ export default function ProductosList() {
     try {
       const { data } = await http.put(`/productos/${id}/sumar-stock`, { cantidad });
 
-      // Si backend devuelve stock actualizado, actualizamos localmente sin recargar.
       if (data && data.stock != null) {
         setItems((prev) =>
           prev.map((x) =>
@@ -112,9 +108,9 @@ export default function ProductosList() {
         const activo = Number(p.activo) === 1;
 
         if (showInactivos) {
-          if (activo) return false; // solo inactivos
+          if (activo) return false;
         } else {
-          if (!activo) return false; // solo activos
+          if (!activo) return false;
         }
 
         const nombre = normalize(p.nombre);
@@ -203,7 +199,7 @@ export default function ProductosList() {
                         <button
                           type="button"
                           onClick={() => sumarStock(p)}
-                          disabled={!isActivo} // opcional: solo sumar a activos
+                          disabled={!isActivo}
                           title={!isActivo ? "Activa el producto para sumar stock" : ""}
                         >
                           + Stock

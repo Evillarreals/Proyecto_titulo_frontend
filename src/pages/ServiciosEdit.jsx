@@ -27,7 +27,6 @@ export default function ServiciosEdit() {
 
         const { data } = await http.get(`/servicios/${id}`);
 
-        // OJO: tu backend puede devolver plano o con wrapper
         const srv = data?.servicio ?? data;
 
         if (!srv) throw new Error("No se encontró el servicio");
@@ -73,7 +72,6 @@ export default function ServiciosEdit() {
     e.preventDefault();
     setError("");
 
-    // Validación mínima (coherente con tu backend)
     if (!form.nombre?.trim()) return setError("Nombre es obligatorio");
     if (!Number.isFinite(form.duracion_min) || form.duracion_min <= 0) return setError("Duración debe ser > 0");
     if (!Number.isFinite(form.precio_base) || form.precio_base <= 0) return setError("Precio debe ser > 0");
@@ -85,12 +83,11 @@ export default function ServiciosEdit() {
         nombre: form.nombre.trim(),
         duracion_min: Number(form.duracion_min),
         precio_base: Number(form.precio_base),
-        activo: form.activo ? 1 : 0, // si tu backend usa TINYINT
+        activo: form.activo ? 1 : 0,
       };
 
       await http.put(`/servicios/${id}`, payload);
 
-      // volver al detalle (o a la lista)
       navigate(`/servicios/${id}`);
     } catch (e) {
       setError(e?.response?.data?.message || "Error al guardar cambios");

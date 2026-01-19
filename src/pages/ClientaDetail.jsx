@@ -26,12 +26,8 @@ export default function ClientaDetail() {
 
   useEffect(() => {
     fetchDetail();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
-  // Soporta ambos formatos:
-  // - objeto plano: { id_clienta, nombre, ... }
-  // - objeto envuelto: { clienta: { ... } }
   const clienta = useMemo(() => {
     if (!raw) return null;
     if (raw.clienta && typeof raw.clienta === "object") return raw.clienta;
@@ -56,8 +52,6 @@ export default function ClientaDetail() {
           Volver
         </button>{" "}
         | <Link to="/clientas">Ir al listado</Link>{" "}
-        {/* Si después haces editar: */}
-        {/* | <Link to={`/clientas/${clienta.id_clienta}/editar`}>Editar</Link> */}
       </div>
 
       <hr />
@@ -97,9 +91,6 @@ export default function ClientaDetail() {
           <Link to="/atenciones/nueva">Agendar atención</Link>
         </li>
       </ul>
-
-      {/* Si después quieres, acá podemos listar "ventas" y "atenciones" asociadas a la clienta,
-          pero necesitaríamos endpoints tipo /clientas/:id/ventas o filtros en /ventas? */}
     </div>
   );
 }

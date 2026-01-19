@@ -25,14 +25,12 @@ export default function PersonalList() {
   const [err, setErr] = useState("");
   const [items, setItems] = useState([]);
 
-  // checkbox: apagado -> activos, encendido -> inactivos
   const [showInactivos, setShowInactivos] = useState(false);
 
   async function fetchAll() {
     setLoading(true);
     setErr("");
     try {
-      // Backend ahora devuelve TODO por /personal
       const res = await http.get("/personal");
       const data = Array.isArray(res.data) ? res.data : res.data?.data ?? [];
       setItems(Array.isArray(data) ? data : []);
@@ -54,14 +52,11 @@ export default function PersonalList() {
 
     try {
       if (Number(p.activo) === 1) {
-        // desactivar
         await http.delete(`/personal/${id}`);
       } else {
-        // activar
         await http.put(`/personal/${id}/activar`);
       }
 
-      // refrescar sin “desaparecer” cosas por estados intermedios
       await fetchAll();
     } catch (e) {
       console.error(e);

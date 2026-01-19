@@ -9,7 +9,6 @@ export default function ProtectedRoute({ children }) {
     return <Navigate to="/login" replace state={{ from: location }} />;
   }
 
-  // Forzar cambio de clave: si debe cambiarla, no lo dejes entrar a nada excepto /cambiar-clave
   if (mustChangePassword && location.pathname !== "/cambiar-clave") {
     return <Navigate to="/cambiar-clave" replace />;
   }

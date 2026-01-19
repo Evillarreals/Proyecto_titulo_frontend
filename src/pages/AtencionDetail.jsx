@@ -46,7 +46,6 @@ export default function AtencionDetail() {
 
   useEffect(() => {
     fetchDetail();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
   const atencion = data?.atencion ?? null;
@@ -85,7 +84,6 @@ export default function AtencionDetail() {
   if (err) return <div style={{ color: "crimson" }}>{err}</div>;
   if (!data || !atencion) return <div>No existe la atención.</div>;
 
-  // Backend devuelve: clienta_telefono, clienta_direccion (según tu Postman)
   const telefono = atencion.clienta_telefono ?? atencion.cliente_telefono ?? "-";
   const direccion = atencion.clienta_direccion ?? atencion.cliente_direccion ?? "-";
 

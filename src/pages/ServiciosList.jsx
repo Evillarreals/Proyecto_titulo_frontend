@@ -6,7 +6,6 @@ export default function ServiciosList() {
   const [servicios, setServicios] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // false => solo activos | true => solo inactivos
   const [mostrarInactivos, setMostrarInactivos] = useState(false);
 
   const [error, setError] = useState("");
@@ -16,7 +15,6 @@ export default function ServiciosList() {
     setLoading(true);
     setError("");
     try {
-      // Backend ahora devuelve todos en /servicios
       const { data } = await http.get("/servicios");
       setServicios(Array.isArray(data) ? data : []);
     } catch (e) {
@@ -43,12 +41,12 @@ export default function ServiciosList() {
 
     try {
       if (Number(servicio.activo) === 1) {
-        await http.delete(`/servicios/${id}`); // desactivar
+        await http.delete(`/servicios/${id}`);
         setServicios((prev) =>
           prev.map((x) => (x.id_servicio === id ? { ...x, activo: 0 } : x))
         );
       } else {
-        await http.put(`/servicios/${id}/activar`); // activar
+        await http.put(`/servicios/${id}/activar`);
         setServicios((prev) =>
           prev.map((x) => (x.id_servicio === id ? { ...x, activo: 1 } : x))
         );
