@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import http from "../api/http";
 import { useAuth } from "../auth/AuthContext";
+import "../App.css";
 
 export default function ChangePassword() {
   const navigate = useNavigate();
@@ -69,58 +70,70 @@ export default function ChangePassword() {
   };
 
   return (
-    <div>
-      <h1>Cambiar contraseña</h1>
+    <div className="page-center">
+      <div className="form-card">
+        <h2 className="form-title">Cambiar contraseña</h2>
 
-      <p>
-        Usuario: <strong>{user?.email || "-"}</strong>
-      </p>
+        <p style={{ textAlign: "center", marginTop: 0 }}>
+          Usuario: <strong>{user?.email || "-"}</strong>
+        </p>
 
-      {error && <p style={{ color: "red" }}>{error}</p>}
-      {ok && <p style={{ color: "green" }}>{ok}</p>}
+        {error && <p className="helper-error">{error}</p>}
+        {ok && (
+          <p style={{ textAlign: "center", color: "green", fontWeight: 600 }}>
+            {ok}
+          </p>
+        )}
 
-      <form onSubmit={onSubmit}>
-        <fieldset disabled={loading}>
-          <div>
-            <label>Contraseña actual</label>
-            <br />
-            <input
-              type="password"
-              value={currentPassword}
-              onChange={(e) => setCurrentPassword(e.target.value)}
-              autoComplete="current-password"
-            />
-          </div>
+        <form onSubmit={onSubmit} className="form">
+          <fieldset disabled={loading} style={{ border: "none", padding: 0 }}>
+            <div className="form-field">
+              <label>Contraseña actual</label>
+              <input
+                type="password"
+                value={currentPassword}
+                onChange={(e) => setCurrentPassword(e.target.value)}
+                autoComplete="current-password"
+              />
+            </div>
 
-          <div>
-            <label>Nueva contraseña</label>
-            <br />
-            <input
-              type="password"
-              value={newPassword}
-              onChange={(e) => setNewPassword(e.target.value)}
-              autoComplete="new-password"
-            />
-          </div>
+            <div className="form-field">
+              <label>Nueva contraseña</label>
+              <input
+                type="password"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                autoComplete="new-password"
+              />
+            </div>
 
-          <div>
-            <label>Repetir nueva contraseña</label>
-            <br />
-            <input
-              type="password"
-              value={newPassword2}
-              onChange={(e) => setNewPassword2(e.target.value)}
-              autoComplete="new-password"
-            />
-          </div>
+            <div className="form-field">
+              <label>Repetir nueva contraseña</label>
+              <input
+                type="password"
+                value={newPassword2}
+                onChange={(e) => setNewPassword2(e.target.value)}
+                autoComplete="new-password"
+              />
+            </div>
 
-          <br />
-          <button type="submit">Guardar</button>{" "}
-          <button type="button" onClick={() => navigate("/")}>
-            Cancelar
-          </button>
-        </fieldset>
-      </form>
+            <div className="form-actions">
+              <button type="submit" className="btn primary" disabled={loading}>
+                {loading ? "Guardando..." : "Guardar"}
+              </button>
+
+              <button
+                type="button"
+                className="btn"
+                onClick={() => navigate("/")}
+                disabled={loading}
+              >
+                Cancelar
+              </button>
+            </div>
+          </fieldset>
+        </form>
+      </div>
     </div>
   );
 }

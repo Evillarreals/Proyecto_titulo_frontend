@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import http from "../api/http";
+import "../App.css";
 
 function moneyCLP(v) {
   const n = Number(v);
@@ -10,6 +11,7 @@ function moneyCLP(v) {
 
 export default function ProductoDetail() {
   const { id } = useParams();
+  const navigate = useNavigate();
 
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState("");
@@ -40,9 +42,37 @@ export default function ProductoDetail() {
     return raw;
   }, [raw]);
 
-  if (loading) return <div>Cargando...</div>;
-  if (err) return <div style={{ color: "crimson" }}>{err}</div>;
-  if (!producto) return <div>No existe el producto.</div>;
+  if (loading) {
+    return (
+      <div className="page-center">
+        <p>Cargando...</p>
+      </div>
+    );
+  }
+
+  if (err) {
+    return (
+      <div className="page-center">
+        <p className="helper-error">{err}</p>
+      </div>
+    );
+  }
+
+  if (!producto) {
+    return (
+      <div className="page-center">
+        <div className="form-card">
+          <h2 className="form-title">Detalle producto</h2>
+          <p style={{ textAlign: "center" }}>No existe el producto.</p>
+          <div className="form-actions">
+            <button type="button" className="btn" onClick={() => navigate(-1)}>
+              Volver
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const nombre = producto.nombre ?? "-";
   const precio =
@@ -51,48 +81,65 @@ export default function ProductoDetail() {
   const stockMin = producto.stock_minimo ?? producto.stock_min ?? null;
 
   const activoTxt =
-    "activo" in producto ? (Number(producto.activo) === 1 ? "sí" : "no") : null;
+    "activo" in producto ? (Number(producto.activo) === 1 ? "Activo" : "Inactivo") : null;
 
   return (
-    <div>
-      <h1>Detalle Producto</h1>
+    <div className="page-center">
+      <div className="list-card">
+        <div className="list-header">
+          <h2 className="list-title">Detalle producto</h2>
 
-      <div style={{ marginBottom: 12 }}>
-        <Link to="/productos">Volver</Link>{" "}
-        | <Link to={`/productos/${id}/editar`}>Editar</Link>{" "}
-        |{" "}
-        <button type="button" onClick={fetchOne}>
-          Recargar
-        </button>
+          <div className="list-header-actions">
+            <button type="button" className="btn" onClick={() => navigate(-1)}>
+              Volver
+            </button>
+
+            <Link to="/productos" className="btn">
+              Ir al listado
+            </Link>
+
+            <Link to={`/productos/${id}/editar`} className="btn">
+              Editar
+            </Link>
+
+            <button type="button" className="btn" onClick={fetchOne}>
+              Recargar
+            </button>
+          </div>
+        </div>
+
+        <div className="resume-box" style={{ marginTop: 14 }}>
+          <div className="card-top" style={{ marginBottom: 10 }}>
+            <div className="card-title">{nombre}</div>
+            {activoTxt ? (
+              <div className="card-sub">
+                <span className={`chip ${activoTxt === "Activo" ? "ok" : "danger"}`}>
+                  {activoTxt}
+                </span>
+              </div>
+            ) : null}
+          </div>
+
+          <div className="card-mid" style={{ justifyContent: "flex-start" }}>
+            <div className="card-line">
+              <span className="muted">Precio:</span>{" "}
+              <strong>{precio !== null ? moneyCLP(precio) : "-"}</strong>
+            </div>
+
+            <div className="card-line">
+              <span className="muted">Stock:</span>{" "}
+              <strong>{stock}</strong>
+            </div>
+
+            {stockMin !== null ? (
+              <div className="card-line">
+                <span className="muted">Stock mínimo:</span>{" "}
+                <strong>{stockMin}</strong>
+              </div>
+            ) : null}
+          </div>
+        </div>
       </div>
-
-      <hr />
-
-      <h2>Información general</h2>
-
-      <p>
-        <strong>Nombre:</strong> {nombre}
-      </p>
-
-      <p>
-        <strong>Precio:</strong> {precio !== null ? moneyCLP(precio) : "-"}
-      </p>
-
-      <p>
-        <strong>Stock:</strong> {stock}
-      </p>
-
-      {stockMin !== null && (
-        <p>
-          <strong>Stock mínimo:</strong> {stockMin}
-        </p>
-      )}
-
-      {activoTxt !== null && (
-        <p>
-          <strong>Activo:</strong> {activoTxt}
-        </p>
-      )}
     </div>
   );
 }

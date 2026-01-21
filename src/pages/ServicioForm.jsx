@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import http from "../api/http";
+import "../App.css";
 
 export default function ServicioForm() {
   const navigate = useNavigate();
@@ -57,58 +58,57 @@ export default function ServicioForm() {
   };
 
   return (
-    <div>
-      <h2>Nuevo servicio</h2>
+    <div className="page-center">
+      <div className="form-card">
+        <h2 className="form-title">Nuevo servicio</h2>
 
-      {error && <p style={{ color: "crimson" }}>{error}</p>}
+        {error && <p className="helper-error">{error}</p>}
 
-      <form onSubmit={onSubmit}>
-        <fieldset disabled={saving} style={{ maxWidth: 520 }}>
-          <div>
-            <label>
-              Nombre<br />
+        <form onSubmit={onSubmit} className="form">
+          <fieldset disabled={saving} style={{ border: "none", padding: 0 }}>
+            <div className="form-field">
+              <label>Nombre</label>
               <input name="nombre" value={form.nombre} onChange={onChange} />
-            </label>
-          </div>
+            </div>
 
-          <div>
-            <label>
-              Duración (min)<br />
-              <input
-                name="duracion_min"
-                type="number"
-                min="1"
-                step="1"
-                value={form.duracion_min}
-                onChange={onChange}
-              />
-            </label>
-          </div>
+            <div className="form-row two-cols">
+              <div className="form-field">
+                <label>Duración (min)</label>
+                <input
+                  name="duracion_min"
+                  type="number"
+                  min="1"
+                  step="1"
+                  value={form.duracion_min}
+                  onChange={onChange}
+                />
+              </div>
 
-          <div>
-            <label>
-              Precio base<br />
-              <input
-                name="precio_base"
-                type="number"
-                min="1"
-                step="1"
-                value={form.precio_base}
-                onChange={onChange}
-              />
-            </label>
-          </div>
+              <div className="form-field">
+                <label>Precio base</label>
+                <input
+                  name="precio_base"
+                  type="number"
+                  min="1"
+                  step="1"
+                  value={form.precio_base}
+                  onChange={onChange}
+                />
+              </div>
+            </div>
 
-          <div style={{ marginTop: 12 }}>
-            <button type="submit" disabled={!canSubmit || saving}>
-              {saving ? "Registrando..." : "Registrar servicio"}
-            </button>{" "}
-            <button type="button" onClick={() => navigate(-1)} disabled={saving}>
-              Volver
-            </button>
-          </div>
-        </fieldset>
-      </form>
+            <div className="form-actions">
+              <button type="submit" className="btn primary" disabled={!canSubmit || saving}>
+                {saving ? "Registrando..." : "Registrar servicio"}
+              </button>
+
+              <button type="button" className="btn" onClick={() => navigate(-1)} disabled={saving}>
+                Volver
+              </button>
+            </div>
+          </fieldset>
+        </form>
+      </div>
     </div>
   );
 }

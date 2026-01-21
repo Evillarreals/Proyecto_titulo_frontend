@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import http from "../api/http";
+import "../App.css";
 
 function formatFecha(fecha) {
   if (!fecha) return "";
@@ -90,8 +91,10 @@ export default function AtencionesList() {
   }
 
   const masoterapeutas = useMemo(() => {
-    return personal.filter((p) =>
-      Array.isArray(p?.roles) && p.roles.some((r) => String(r?.nombre).toLowerCase() === "masoterapeuta")
+    return personal.filter(
+      (p) =>
+        Array.isArray(p?.roles) &&
+        p.roles.some((r) => String(r?.nombre).toLowerCase() === "masoterapeuta")
     );
   }, [personal]);
 
@@ -130,12 +133,9 @@ export default function AtencionesList() {
       const apellido = a?.cliente_apellido ?? a?.clienta_apellido ?? "";
       const cliente = `${nombre} ${apellido}`.trim().toLowerCase();
 
-      return (
-        cliente.includes(term) ||
-        estadoAtencion.includes(term) ||
-        estadoPago.includes(term)
-      );
+      return cliente.includes(term) || estadoAtencion.includes(term) || estadoPago.includes(term);
     });
+
     const sorted = [...filtradas].sort((a, b) => {
       const fa = new Date(a?.fecha_inicio ?? a?.fecha ?? 0).getTime();
       const fb = new Date(b?.fecha_inicio ?? b?.fecha ?? 0).getTime();
@@ -165,119 +165,125 @@ export default function AtencionesList() {
     if (checked) setSoloCerradas(false);
   }
 
-  if (loading) return <p>Cargando atenciones...</p>;
+  if (loading) {
+    return (
+      <div className="page-center">
+        <p>Cargando atenciones...</p>
+      </div>
+    );
+  }
 
   return (
-    <div>
-      <h1>Atenciones</h1>
+    <div className="page-center">
+      <div className="list-card">
+        <div className="list-header">
+          <h2 className="list-title">Atenciones</h2>
 
-      <p>
-        <Link to="/atenciones/nueva">+ Nueva atención</Link>{" "}
-        <button onClick={fetchAtenciones}>Recargar</button>
-      </p>
+          <div className="list-header-actions">
+            <Link to="/atenciones/nueva" className="btn primary">
+              Nueva Atencion
+            </Link>
 
-      <fieldset style={{ padding: 10 }}>
-        <legend>Filtros</legend>
+            <button type="button" className="btn" onClick={fetchAtenciones}>
+              Recargar
+            </button>
+          </div>
+        </div>
 
-        <div style={{ marginBottom: 8 }}>
-          <label>
-            Buscar:{" "}
+        <div className="filters-card">
+          <h3 className="filters-title">Filtros</h3>
+
+          <div className="form-field">
+            <label>Buscar</label>
             <input
               value={q}
               onChange={(e) => setQ(e.target.value)}
               placeholder="clienta, estado atención o pago..."
             />
-          </label>
+          </div>
+
+          <div className="form-row two-cols">
+            <div className="form-field">
+              <label>Día</label>
+              <input type="date" value={fechaDia} onChange={(e) => setFechaDia(e.target.value)} />
+            </div>
+
+            <div className="form-field" style={{ justifyContent: "flex-end" }}>
+              <button
+                type="button"
+                className="btn"
+                onClick={() => setFechaDia("")}
+                disabled={!fechaDia}
+              >
+                Limpiar día
+              </button>
+            </div>
+          </div>
+
+          <div className="form-row two-cols">
+            <div className="form-field">
+              <label>Masoterapeuta</label>
+              <select value={idMasoterapeuta} onChange={(e) => setIdMasoterapeuta(e.target.value)}>
+                <option value="">-- Todas --</option>
+                {masoterapeutas.map((p) => (
+                  <option key={p.id_personal} value={p.id_personal}>
+                    {p.nombre} {p.apellido} (#{p.id_personal})
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="form-field" style={{ justifyContent: "flex-end" }}>
+              <button
+                type="button"
+                className="btn"
+                onClick={() => setIdMasoterapeuta("")}
+                disabled={!idMasoterapeuta}
+              >
+                Limpiar
+              </button>
+            </div>
+          </div>
+
+          <div className="checks-row">
+            <label className="role-check">
+              <input
+                type="checkbox"
+                checked={soloCerradas}
+                onChange={(e) => toggleSoloCerradas(e.target.checked)}
+              />
+              Ver solo realizadas y pagadas
+            </label>
+
+            <label className="role-check">
+              <input
+                type="checkbox"
+                checked={soloCanceladas}
+                onChange={(e) => toggleSoloCanceladas(e.target.checked)}
+              />
+              Ver solo canceladas
+            </label>
+          </div>
         </div>
 
-        <div style={{ marginBottom: 8 }}>
-          <label>
-            Día:{" "}
-            <input
-              type="date"
-              value={fechaDia}
-              onChange={(e) => setFechaDia(e.target.value)}
-            />
-          </label>{" "}
-          {fechaDia && (
-            <button type="button" onClick={() => setFechaDia("")}>
-              Limpiar día
-            </button>
-          )}
-        </div>
+        {err ? <p className="helper-error">{err}</p> : null}
 
-        <div style={{ marginBottom: 8 }}>
-          <label>
-            Masoterapeuta:{" "}
-            <select
-              value={idMasoterapeuta}
-              onChange={(e) => setIdMasoterapeuta(e.target.value)}
-            >
-              <option value="">-- Todas --</option>
-              {masoterapeutas.map((p) => (
-                <option key={p.id_personal} value={p.id_personal}>
-                  {p.nombre} {p.apellido} (#{p.id_personal})
-                </option>
-              ))}
-            </select>
-          </label>{" "}
-          {idMasoterapeuta && (
-            <button type="button" onClick={() => setIdMasoterapeuta("")}>
-              Limpiar masoterapeuta
-            </button>
-          )}
-        </div>
+        {!err && filteredAndSorted.length === 0 ? (
+          <p style={{ textAlign: "center", marginTop: 10 }}>No hay atenciones.</p>
+        ) : null}
 
-        <div style={{ marginTop: 8 }}>
-          <label>
-            <input
-              type="checkbox"
-              checked={soloCerradas}
-              onChange={(e) => toggleSoloCerradas(e.target.checked)}
-            />{" "}
-            Ver solo atenciones realizadas y pagadas
-          </label>
-        </div>
+        {!err &&
+          grouped.map(([dia, items]) => (
+            <div key={dia} style={{ marginTop: 14 }}>
+              <h3 className="group-title">{dia || "Sin fecha"}</h3>
 
-        <div style={{ marginTop: 6 }}>
-          <label>
-            <input
-              type="checkbox"
-              checked={soloCanceladas}
-              onChange={(e) => toggleSoloCanceladas(e.target.checked)}
-            />{" "}
-            Ver solo atenciones canceladas
-          </label>
-        </div>
-      </fieldset>
-
-      {err && <p style={{ color: "red" }}>{err}</p>}
-
-      {!err && filteredAndSorted.length === 0 && <p>No hay atenciones.</p>}
-
-      {!err &&
-        grouped.map(([dia, items]) => (
-          <div key={dia} style={{ marginTop: 12 }}>
-            <h3>{dia || "Sin fecha"}</h3>
-
-            <table border="1" cellPadding="6" cellSpacing="0">
-              <thead>
-                <tr>
-                  <th>Clienta</th>
-                  <th>Fecha</th>
-                  <th>Total</th>
-                  <th>Estado atención</th>
-                  <th>Estado pago</th>
-                  <th>Acciones</th>
-                </tr>
-              </thead>
-
-              <tbody>
+              <div className={`cards-grid ${items.length % 2 === 1 ? "odd" : ""}`}>
                 {items.map((a) => {
                   const id = a?.id_atencion ?? a?.id;
 
                   const nombre = a?.cliente_nombre ?? a?.clienta_nombre ?? "";
                   const apellido = a?.cliente_apellido ?? a?.clienta_apellido ?? "";
+                  const cliente = `${nombre} ${apellido}`.trim();
 
                   const fecha = a?.fecha_inicio ?? a?.fecha ?? "";
                   const total = a?.total ?? a?.monto_total ?? a?.total_atencion ?? "";
@@ -286,53 +292,75 @@ export default function AtencionesList() {
                   const estadoAtencionLower = estadoAtencion.toLowerCase();
                   const estadoPago = String(a?.estado_pago ?? "");
 
+                  const chipAtencion =
+                    estadoAtencionLower === "realizada"
+                      ? "chip ok"
+                      : estadoAtencionLower === "cancelada"
+                      ? "chip danger"
+                      : "chip";
+
+                  const chipPago =
+                    String(estadoPago).toLowerCase() === "pagado" ? "chip ok" : "chip";
+
                   return (
-                    <tr key={id}>
-                      <td>
-                        {nombre} {apellido}
-                      </td>
-                      <td>{formatFecha(fecha)}</td>
-                      <td>{total !== "" ? `$${total}` : ""}</td>
-                      <td>{estadoAtencion}</td>
-                      <td>{estadoPago}</td>
-                      <td>
-                        <Link to={`/atenciones/${id}/editar`}>Editar</Link>{" "}
-                        | <Link to={`/atenciones/${id}/pagos/nuevo`}>Pagar</Link>{" "}
-                        | <Link to={`/atenciones/${id}`}>Ver detalle</Link>
+                    <div key={id} className="list-item-card">
+                      <div className="card-top">
+                        <div className="card-title">{cliente || "Sin nombre"}</div>
+                        <div className="card-sub">{formatFecha(fecha)}</div>
+                      </div>
+
+                      <div className="card-mid">
+                        <div className="card-line">
+                          <span className="muted">Total</span>{" "}
+                          <strong>{total !== "" ? `$${total}` : "-"}</strong>
+                        </div>
+
+                        <div className="chips">
+                          <span className={chipAtencion}>{estadoAtencion || "pendiente"}</span>
+                          <span className={chipPago}>{estadoPago || "pendiente"}</span>
+                        </div>
+                      </div>
+
+                      <div className="card-actions">
+                        <Link to={`/atenciones/${id}`} className="btn">
+                          Ver Detalle
+                        </Link>
+
+                        <Link to={`/atenciones/${id}/editar`} className="btn">
+                          Editar
+                        </Link>
+
+                        <Link to={`/atenciones/${id}/pagos/nuevo`} className="btn">
+                          Pagar
+                        </Link>
 
                         {estadoAtencionLower !== "realizada" && (
-                          <>
-                            {" "}
-                            |{" "}
-                            <button
-                              type="button"
-                              onClick={() => cambiarEstado(id, "realizada")}
-                            >
-                              Marcar realizada
-                            </button>
-                          </>
+                          <button
+                            type="button"
+                            className="btn"
+                            onClick={() => cambiarEstado(id, "realizada")}
+                          >
+                            Marcar realizada
+                          </button>
                         )}
 
                         {estadoAtencionLower !== "cancelada" && (
-                          <>
-                            {" "}
-                            |{" "}
-                            <button
-                              type="button"
-                              onClick={() => cambiarEstado(id, "cancelada")}
-                            >
-                              Cancelar
-                            </button>
-                          </>
+                          <button
+                            type="button"
+                            className="btn"
+                            onClick={() => cambiarEstado(id, "cancelada")}
+                          >
+                            Cancelar
+                          </button>
                         )}
-                      </td>
-                    </tr>
+                      </div>
+                    </div>
                   );
                 })}
-              </tbody>
-            </table>
-          </div>
-        ))}
+              </div>
+            </div>
+          ))}
+      </div>
     </div>
   );
 }

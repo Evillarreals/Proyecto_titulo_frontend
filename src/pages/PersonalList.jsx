@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import http from "../api/http";
+import "../App.css";
 
 function rolesToText(p) {
   const r = p?.roles;
@@ -9,7 +10,10 @@ function rolesToText(p) {
     if (r.length === 0) return "-";
     if (typeof r[0] === "string") return r.join(", ");
     if (typeof r[0] === "object" && r[0] !== null) {
-      return r.map((x) => x.nombre ?? x.role ?? x.name).filter(Boolean).join(", ") || "-";
+      return r
+        .map((x) => x.nombre ?? x.role ?? x.name)
+        .filter(Boolean)
+        .join(", ") || "-";
     }
   }
 
@@ -82,83 +86,120 @@ export default function PersonalList() {
     return filtered;
   }, [items, showInactivos]);
 
-  if (loading) return <div>Cargando...</div>;
-  if (err) return <div style={{ color: "crimson" }}>{err}</div>;
+  if (loading) {
+    return (
+      <div className="page-center">
+        <p>Cargando...</p>
+      </div>
+    );
+  }
+
+  if (err) {
+    return (
+      <div className="page-center">
+        <p className="helper-error">{err}</p>
+      </div>
+    );
+  }
 
   return (
-    <div>
-      <h1>Personal</h1>
+    <div className="page-center">
+      <div className="list-card">
 
-      <div style={{ marginBottom: 12 }}>
-        <Link to="/dashboard">Volver al dashboard</Link>{" "}
-        | <button type="button" onClick={fetchAll}>Recargar</button>{" "}
-        | <Link to="/personal/nueva">Registrar nuevo personal</Link>
-      </div>
+        <div className="list-header">
+          <h2 className="list-title">Personal</h2>
 
-      <label>
-        <input
-          type="checkbox"
-          checked={showInactivos}
-          onChange={(e) => setShowInactivos(e.target.checked)}
-        />{" "}
-        Mostrar personal inactivo
-      </label>
+          <div className="list-header-actions">
+            <Link to="/personal/nueva" className="btn primary">
+              Nuevo Personal
+            </Link>
 
-      <hr />
+            <button type="button" className="btn" onClick={fetchAll}>
+              Recargar
+            </button>
 
-      {filteredSorted.length === 0 ? (
-        <p>
-          {showInactivos ? "No hay personal inactivo." : "No hay personal activo."}
-        </p>
-      ) : (
-        <table border="1" cellPadding="8" style={{ borderCollapse: "collapse", width: "100%" }}>
-          <thead>
-            <tr>
-              <th>Nombre</th>
-              <th>RUT</th>
-              <th>Email</th>
-              <th>Teléfono</th>
-              <th>Activo</th>
-              <th>Roles</th>
-              <th>Acciones</th>
-            </tr>
-          </thead>
+            <Link to="/dashboard" className="btn">
+              Volver
+            </Link>
+          </div>
+        </div>
 
-          <tbody>
+        <div className="filters-card">
+          <label className="role-check">
+            <input
+              type="checkbox"
+              checked={showInactivos}
+              onChange={(e) => setShowInactivos(e.target.checked)}
+            />
+            Mostrar personal inactivo
+          </label>
+        </div>
+
+        {filteredSorted.length === 0 ? (
+          <p style={{ textAlign: "center", marginTop: 10 }}>
+            {showInactivos ? "No hay personal inactivo." : "No hay personal activo."}
+          </p>
+        ) : (
+          <div
+            className={`cards-grid ${filteredSorted.length % 2 === 1 ? "odd" : ""}`}
+            style={{ marginTop: 14 }}
+          >
             {filteredSorted.map((p) => {
               const id = p.id_personal ?? p.id ?? p.idPersonal;
               const nombre = `${p.nombre ?? ""} ${p.apellido ?? ""}`.trim() || "-";
-              const activoTxt = Number(p.activo) === 1 ? "sí" : "no";
+              const activoTxt = Number(p.activo) === 1 ? "Activo" : "Inactivo";
+              const rolesTxt = rolesToText(p);
 
               return (
-                <tr key={id ?? `${p.email}-${nombre}`}>
-                  <td>{nombre}</td>
-                  <td>{p.rut ?? "-"}</td>
-                  <td>{p.email ?? "-"}</td>
-                  <td>{p.telefono ?? "-"}</td>
-                  <td>{activoTxt}</td>
-                  <td>{rolesToText(p)}</td>
-                  <td>
+                <div key={id ?? `${p.email}-${nombre}`} className="list-item-card">
+                  <div className="card-top">
+                    <div className="card-title">{nombre}</div>
+                    <div className="card-sub">{activoTxt}</div>
+                  </div>
+
+                  <div className="card-mid" style={{ justifyContent: "flex-start" }}>
+                    <div className="card-line">
+                      <span className="muted">RUT:</span> {p.rut ?? "-"}
+                    </div>
+
+                    <div className="card-line">
+                      <span className="muted">Email:</span> {p.email ?? "-"}
+                    </div>
+
+                    <div className="card-line">
+                      <span className="muted">Teléfono:</span> {p.telefono ?? "-"}
+                    </div>
+
+                    <div className="card-line">
+                      <span className="muted">Roles:</span> {rolesTxt}
+                    </div>
+                  </div>
+
+                  <div className="card-actions">
                     {id ? (
                       <>
-                        <Link to={`/personal/${id}`}>Ver detalle</Link>
-                        {" | "}
-                        <Link to={`/personal/${id}/editar`}>Editar</Link>
-                        {" | "}
-                        <button type="button" onClick={() => toggleActivo(p)}>
+                        <Link to={`/personal/${id}`} className="btn">
+                          Ver Detalle
+                        </Link>
+
+                        <Link to={`/personal/${id}/editar`} className="btn">
+                          Editar
+                        </Link>
+
+                        <button type="button" className="btn" onClick={() => toggleActivo(p)}>
                           {Number(p.activo) === 1 ? "Desactivar" : "Activar"}
                         </button>
                       </>
                     ) : (
-                      "-"
+                      <span>-</span>
                     )}
-                  </td>
-                </tr>
+                  </div>
+                </div>
               );
             })}
-          </tbody>
-        </table>
-      )}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

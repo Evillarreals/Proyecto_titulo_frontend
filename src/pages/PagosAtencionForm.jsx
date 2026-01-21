@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams, Link } from "react-router-dom";
 import http from "../api/http";
+import "../App.css";
 
 export default function PagosAtencionForm() {
   const navigate = useNavigate();
@@ -115,101 +116,92 @@ export default function PagosAtencionForm() {
 
   const totalPagadoNum =
     Number(
-      resumenBackend?.totalPagado ??
-        atencion?.total_pagado ??
-        atencion?.totalPagado ??
-        0
+      resumenBackend?.totalPagado ?? atencion?.total_pagado ?? atencion?.totalPagado ?? 0
     ) || 0;
 
-  const saldoNum =
-    Number(resumenBackend?.saldo ?? (totalAtencionNum - totalPagadoNum)) || 0;
+  const saldoNum = Number(resumenBackend?.saldo ?? totalAtencionNum - totalPagadoNum) || 0;
 
   const estadoPago = atencion?.estado_pago ?? "";
 
   return (
-    <div>
-      <h1>Registrar pago de atención</h1>
+    <div className="page-center">
+      <div className="form-card">
+        <h2 className="form-title">Registrar pago de atención</h2>
 
-      {atencion && (
-        <div>
-          <h2>Resumen atención #{atencion?.id_atencion ?? ""}</h2>
+        {atencion && (
+          <div className="resume-box">
+            <h3>Atención #{atencion?.id_atencion ?? ""}</h3>
 
-          <p>
-            <strong>Clienta:</strong> {clienteNombre} {clienteApellido}
-          </p>
+            <p>
+              <strong>Clienta:</strong> {clienteNombre} {clienteApellido}
+            </p>
 
-          <p>
-            <strong>Total atención:</strong> ${resumenBackend?.totalAtencion ?? totalAtencionNum}
-          </p>
+            <p>
+              <strong>Total atención:</strong> $
+              {resumenBackend?.totalAtencion ?? totalAtencionNum}
+            </p>
 
-          <p>
-            <strong>Total pagado:</strong> ${totalPagadoNum}
-          </p>
+            <p>
+              <strong>Total pagado:</strong> ${totalPagadoNum}
+            </p>
 
-          <p>
-            <strong>Saldo:</strong> ${saldoNum}
-          </p>
+            <p>
+              <strong>Saldo:</strong> ${saldoNum}
+            </p>
 
-          <p>
-            <strong>Estado pago:</strong> {estadoPago}
-          </p>
+            <p>
+              <strong>Estado pago:</strong> {estadoPago}
+            </p>
 
-          <hr />
-        </div>
-      )}
+            <div className="form-actions">
+              <Link to={`/atenciones/${atencion?.id_atencion}`} className="btn">
+                Ver detalle
+              </Link>
+            </div>
+          </div>
+        )}
 
-      <form onSubmit={onSubmit}>
-        <fieldset>
-          <legend>Datos del pago</legend>
+        <form onSubmit={onSubmit} className="form">
+          <h3 style={{ textAlign: "center" }}>Datos del pago</h3>
 
-          <label>
-            ID Atención{" "}
-            <input
-              type="number"
-              min="1"
-              value={idAtencion}
-              onChange={(e) => setIdAtencion(e.target.value)}
-            />
-          </label>
-
-          <br />
-
-          <label>
-            Monto{" "}
+          <div className="form-field">
+            <label>Monto</label>
             <input
               type="number"
               min="1"
               value={monto}
               onChange={(e) => setMonto(e.target.value)}
             />
-          </label>
+          </div>
 
-          <br />
-
-          <label>
-            Medio de pago{" "}
+          <div className="form-field">
+            <label>Medio de pago</label>
             <select value={medioPago} onChange={(e) => setMedioPago(e.target.value)}>
-              <option value="efectivo">efectivo</option>
-              <option value="transferencia">transferencia</option>
-              <option value="debito">debito</option>
-              <option value="credito">credito</option>
+              <option value="efectivo">Efectivo</option>
+              <option value="transferencia">Transferencia</option>
+              <option value="debito">Débito</option>
+              <option value="credito">Crédito</option>
             </select>
-          </label>
+          </div>
 
-          <br />
-          <br />
+          {error && <p className="helper-error">{error}</p>}
+          {okMsg && (
+            <p style={{ textAlign: "center", color: "green", fontWeight: 600 }}>
+              {okMsg}
+            </p>
+          )}
 
-          {error && <p style={{ color: "red" }}>{error}</p>}
-          {okMsg && <p style={{ color: "green" }}>{okMsg}</p>}
+          <div className="form-actions">
+            <button type="submit" className="btn primary" disabled={loadingSubmit}>
+              {loadingSubmit ? "Registrando..." : "Registrar pago"}
+            </button>
 
-          <button type="submit" disabled={loadingSubmit}>
-            {loadingSubmit ? "Registrando..." : "Registrar pago"}
-          </button>{" "}
-          <button type="button" onClick={() => navigate(-1)}>
-            Volver
-          </button>
-        </fieldset>
-      </form>
+            <button type="button" className="btn" onClick={() => navigate(-1)}>
+              Volver
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
   );
 }

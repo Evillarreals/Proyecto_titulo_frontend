@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import http from "../api/http";
+import "../App.css";
 
 function formatDateTime(isoString) {
   if (!isoString) return "-";
@@ -94,7 +95,7 @@ export default function VentaDetail() {
       clienteTel: clienteTel || "-",
       clienteEmail: clienteEmail || "-",
       clienteDir: clienteDir || "-",
-      vendedoraNombre: vendedoraNombre || "-", // ✅
+      vendedoraNombre: vendedoraNombre || "-",
       total,
       estadoPago: estadoPago || "-",
     };
@@ -118,134 +119,182 @@ export default function VentaDetail() {
     };
   }, [resumenPago, info]);
 
-  if (loading) return <div>Cargando...</div>;
-  if (err) return <div style={{ color: "crimson" }}>{err}</div>;
-  if (!venta || !info) return <div>No existe la venta.</div>;
+  if (loading) {
+    return (
+      <div className="page-center">
+        <p>Cargando...</p>
+      </div>
+    );
+  }
+
+  if (err) {
+    return (
+      <div className="page-center">
+        <p className="helper-error">{err}</p>
+      </div>
+    );
+  }
+
+  if (!venta || !info) {
+    return (
+      <div className="page-center">
+        <div className="form-card">
+          <h2 className="form-title">Detalle venta</h2>
+          <p style={{ textAlign: "center" }}>No existe la venta.</p>
+          <div className="form-actions">
+            <button type="button" className="btn" onClick={() => navigate(-1)}>
+              Volver
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  const chipPago = resumen.saldo <= 0 ? "chip ok" : "chip";
 
   return (
-    <div>
-      <h1>Detalle Venta</h1>
+    <div className="page-center">
+      <div className="list-card">
+        <div className="list-header">
+          <h2 className="list-title">Detalle venta #{info.idVenta}</h2>
 
-      <div style={{ marginBottom: 10 }}>
-        <button type="button" onClick={() => navigate(-1)}>
-          Volver
-        </button>{" "}
-        | <Link to={`/ventas/${info.idVenta}/pagos/nuevo`}>Ir a pagar</Link>{" "}
-        | <Link to={`/ventas/${info.idVenta}/editar`}>Editar</Link>
+          <div className="list-header-actions">
+            <button type="button" className="btn" onClick={() => navigate(-1)}>
+              Volver
+            </button>
+
+            <Link to={`/ventas/${info.idVenta}/editar`} className="btn">
+              Editar
+            </Link>
+
+            <Link to={`/ventas/${info.idVenta}/pagos/nuevo`} className="btn primary">
+              Ir a pagar
+            </Link>
+
+            <Link to="/ventas" className="btn">
+              Ir al listado
+            </Link>
+          </div>
+        </div>
+
+        <div className="resume-box" style={{ marginTop: 14 }}>
+          <div className="card-top" style={{ marginBottom: 10 }}>
+            <div className="card-title">{info.clienteNombre}</div>
+            <div className="card-sub">{formatDateTime(info.fecha)}</div>
+          </div>
+
+          <div className="card-mid" style={{ justifyContent: "space-between" }}>
+            <div className="card-line">
+              <span className="muted">Vendedora:</span>{" "}
+              <strong>{info.vendedoraNombre}</strong>
+            </div>
+
+            <div className="chips">
+              <span className="chip">{info.estadoPago}</span>
+              <span className={chipPago}>{resumen.saldo <= 0 ? "pagado" : "pendiente"}</span>
+            </div>
+          </div>
+
+          <div className="card-mid" style={{ justifyContent: "flex-start" }}>
+            <div className="card-line">
+              <span className="muted">Teléfono:</span> {info.clienteTel}
+            </div>
+            <div className="card-line">
+              <span className="muted">Dirección:</span> {info.clienteDir}
+            </div>
+            <div className="card-line">
+              <span className="muted">Email:</span> {info.clienteEmail}
+            </div>
+          </div>
+
+          <div className="card-mid" style={{ justifyContent: "space-between" }}>
+            <div className="card-line">
+              <span className="muted">Total venta:</span>{" "}
+              <strong>{moneyCLP(info.total)}</strong>
+            </div>
+
+            <div className="card-line">
+              <span className="muted">Total pagado:</span>{" "}
+              <strong>{moneyCLP(resumen.totalPagado)}</strong>
+            </div>
+
+            <div className="card-line">
+              <span className="muted">Saldo:</span>{" "}
+              <strong>{moneyCLP(resumen.saldo)}</strong>
+            </div>
+          </div>
+        </div>
+
+        <div className="filters-card" style={{ marginTop: 14 }}>
+          <h3 className="filters-title">Productos</h3>
+
+          {items.length === 0 ? (
+            <p style={{ textAlign: "center" }}>No hay productos en esta venta.</p>
+          ) : (
+            <div className={`cards-grid ${items.length % 2 === 1 ? "odd" : ""}`}>
+              {items.map((it, idx) => {
+                const nombre = it.producto_nombre ?? it.nombre_producto ?? null;
+                const idProd = it.id_producto ?? it.producto_id ?? "-";
+                const cantidad = Number(it.cantidad ?? 0) || 0;
+                const precio = Number(it.precio_unitario ?? it.precio ?? 0) || 0;
+                const subtotal = cantidad * precio;
+
+                return (
+                  <div key={it.id_detalle ?? it.id_item ?? idx} className="list-item-card">
+                    <div className="card-top">
+                      <div className="card-title">
+                        {nombre ? nombre : `#${idProd}`}
+                      </div>
+                      <div className="card-sub">
+                        {cantidad} x {moneyCLP(precio)}
+                      </div>
+                    </div>
+
+                    <div className="card-mid" style={{ justifyContent: "space-between" }}>
+                      <div className="card-line">
+                        <span className="muted">Subtotal:</span>{" "}
+                        <strong>{moneyCLP(subtotal)}</strong>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+
+        <div className="filters-card" style={{ marginTop: 14 }}>
+          <h3 className="filters-title">Pagos</h3>
+
+          {pagos.length === 0 ? (
+            <p style={{ textAlign: "center" }}>No hay pagos registrados.</p>
+          ) : (
+            <div className={`cards-grid ${pagos.length % 2 === 1 ? "odd" : ""}`}>
+              {pagos.map((p, idx) => {
+                const fecha = p.fecha ?? p.created_at ?? p.fecha_pago ?? null;
+                const monto = p.monto ?? p.total ?? 0;
+                const medio = p.medio_pago ?? p.medio ?? "-";
+
+                return (
+                  <div key={p.id_pago_venta ?? p.id_pago ?? idx} className="list-item-card">
+                    <div className="card-top">
+                      <div className="card-title">{moneyCLP(monto)}</div>
+                      <div className="card-sub">{formatDateTime(fecha)}</div>
+                    </div>
+
+                    <div className="card-mid" style={{ justifyContent: "flex-start" }}>
+                      <div className="card-line">
+                        <span className="muted">Medio:</span> {medio}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
       </div>
-
-      <hr />
-
-      <h2>Información general</h2>
-
-      <p>
-        <strong>Fecha:</strong> {formatDateTime(info.fecha)}
-      </p>
-
-      <p>
-        <strong>Clienta:</strong> {info.clienteNombre}
-      </p>
-
-      <p>
-        <strong>Vendedora:</strong> {info.vendedoraNombre}
-      </p>
-
-      <p>
-        <strong>Teléfono:</strong> {info.clienteTel}
-      </p>
-
-      <p>
-        <strong>Dirección:</strong> {info.clienteDir}
-      </p>
-
-      <p>
-        <strong>Email:</strong> {info.clienteEmail}
-      </p>
-
-      <p>
-        <strong>Total venta:</strong> {moneyCLP(info.total)}
-      </p>
-
-      <p>
-        <strong>Estado pago:</strong> {info.estadoPago}
-      </p>
-
-      <p>
-        <strong>Total pagado:</strong> {moneyCLP(resumen.totalPagado)}
-      </p>
-
-      <p>
-        <strong>Saldo:</strong> {moneyCLP(resumen.saldo)}
-      </p>
-
-      <hr />
-
-      <h2>Productos</h2>
-
-      {items.length === 0 ? (
-        <p>No hay productos en esta venta.</p>
-      ) : (
-        <table border="1" cellPadding="6" style={{ borderCollapse: "collapse" }}>
-          <thead>
-            <tr>
-              <th>Producto</th>
-              <th>Cantidad</th>
-              <th>Precio unitario</th>
-              <th>Subtotal</th>
-            </tr>
-          </thead>
-          <tbody>
-            {items.map((it, idx) => {
-              const nombre = it.producto_nombre ?? it.nombre_producto ?? null;
-              const idProd = it.id_producto ?? it.producto_id ?? "-";
-              const cantidad = Number(it.cantidad ?? 0) || 0;
-              const precio = Number(it.precio_unitario ?? it.precio ?? 0) || 0;
-              const subtotal = cantidad * precio;
-
-              return (
-                <tr key={it.id_detalle ?? it.id_item ?? idx}>
-                  <td>{nombre ? nombre : `#${idProd}`}</td>
-                  <td>{cantidad}</td>
-                  <td>{moneyCLP(precio)}</td>
-                  <td>{moneyCLP(subtotal)}</td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      )}
-
-      <hr />
-
-      <h2>Pagos</h2>
-
-      {pagos.length === 0 ? (
-        <p>No hay pagos registrados.</p>
-      ) : (
-        <table border="1" cellPadding="6" style={{ borderCollapse: "collapse" }}>
-          <thead>
-            <tr>
-              <th>Fecha</th>
-              <th>Monto</th>
-              <th>Medio</th>
-            </tr>
-          </thead>
-          <tbody>
-            {pagos.map((p, idx) => {
-              const fecha = p.fecha ?? p.created_at ?? p.fecha_pago ?? null;
-              const monto = p.monto ?? p.total ?? 0;
-              const medio = p.medio_pago ?? p.medio ?? "-";
-              return (
-                <tr key={p.id_pago_venta ?? p.id_pago ?? idx}>
-                  <td>{formatDateTime(fecha)}</td>
-                  <td>{moneyCLP(monto)}</td>
-                  <td>{medio}</td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      )}
     </div>
   );
 }

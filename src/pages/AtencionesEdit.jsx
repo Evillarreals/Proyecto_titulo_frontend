@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import http from "../api/http";
 import { useAuth } from "../auth/AuthContext";
+import "../App.css";
 
 function moneyCLP(v) {
   const n = Number(v);
@@ -211,136 +212,154 @@ export default function AtencionesEdit() {
     }
   }
 
-  if (loading) return <div>Cargando...</div>;
+  if (loading) {
+    return (
+      <div className="page-center">
+        <p>Cargando...</p>
+      </div>
+    );
+  }
 
   return (
-    <div>
-      <h1>Editar atención</h1>
+    <div className="page-center">
+      <div className="form-card">
+        <h2 className="form-title">Editar atención</h2>
 
-      <div style={{ marginBottom: 10 }}>
-        <Link to={`/atenciones/${id}`}>Volver al detalle</Link> |{" "}
-        <button type="button" onClick={loadAll} disabled={saving}>
-          Recargar
-        </button>
-      </div>
+        <div className="form-actions" style={{ marginBottom: 18 }}>
+          <Link to={`/atenciones/${id}`} className="btn">
+            Volver al detalle
+          </Link>
 
-      {error ? <p style={{ color: "crimson" }}>{error}</p> : null}
-      {okMsg ? <p style={{ color: "green" }}>{okMsg}</p> : null}
+          <button type="button" className="btn" onClick={loadAll} disabled={saving}>
+            Recargar
+          </button>
+        </div>
 
-      <form onSubmit={onSubmit}>
-        <fieldset disabled={saving}>
-          <h3>Datos generales</h3>
+        {error ? <p className="helper-error">{error}</p> : null}
+        {okMsg ? <p style={{ textAlign: "center", color: "green", fontWeight: 600 }}>{okMsg}</p> : null}
 
-          <div>
-            <label>Clienta</label>
-            <br />
-            <select value={idClienta} onChange={(e) => setIdClienta(e.target.value)}>
-              <option value="">-- Seleccionar --</option>
-              {clientas.map((c) => (
-                <option key={c.id_clienta} value={c.id_clienta}>
-                  {c.nombre} {c.apellido} (#{c.id_clienta})
-                </option>
-              ))}
-            </select>
-          </div>
+        <form onSubmit={onSubmit} className="form">
+          <fieldset disabled={saving} style={{ border: "none", padding: 0 }}>
+            <h3 style={{ textAlign: "center", margin: "6px 0 10px" }}>Datos generales</h3>
 
-          {isAdmin ? (
-            <div style={{ marginTop: 10 }}>
-              <label>Masoterapeuta (personal)</label>
-              <br />
-              <select value={idPersonal} onChange={(e) => setIdPersonal(e.target.value)}>
+            <div className="form-field">
+              <label>Clienta</label>
+              <select value={idClienta} onChange={(e) => setIdClienta(e.target.value)}>
                 <option value="">-- Seleccionar --</option>
-                {personalCatalogo.map((p) => (
-                  <option key={p.id_personal} value={p.id_personal}>
-                    {p.nombre} {p.apellido} (#{p.id_personal})
+                {clientas.map((c) => (
+                  <option key={c.id_clienta} value={c.id_clienta}>
+                    {c.nombre} {c.apellido} (#{c.id_clienta})
                   </option>
                 ))}
               </select>
             </div>
-          ) : null}
 
-          <div style={{ marginTop: 10 }}>
-            <label>Fecha / hora inicio</label>
-            <br />
-            <input
-              type="datetime-local"
-              value={fechaInicioLocal}
-              onChange={(e) => setFechaInicioLocal(e.target.value)}
-            />
-          </div>
-
-          <div style={{ marginTop: 10 }}>
-            <label>Traslado (min)</label>
-            <br />
-            <input
-              type="number"
-              min="0"
-              step="1"
-              value={trasladoMin}
-              onChange={(e) => setTrasladoMin(e.target.value)}
-            />
-          </div>
-
-          <hr />
-
-          <h3>Servicios</h3>
-
-          {items.map((it, idx) => (
-            <div key={idx} style={{ marginBottom: 12 }}>
-              <div>
-                <label>Servicio</label>
-                <br />
-                <select
-                  value={it.id_servicio}
-                  onChange={(e) => onChangeServicio(idx, e.target.value)}
-                >
+            {isAdmin ? (
+              <div className="form-field">
+                <label>Masoterapeuta (personal)</label>
+                <select value={idPersonal} onChange={(e) => setIdPersonal(e.target.value)}>
                   <option value="">-- Seleccionar --</option>
-                  {serviciosCatalogo.map((s) => (
-                    <option key={s.id_servicio} value={s.id_servicio}>
-                      {s.nombre} - {moneyCLP(s.precio_base)}
+                  {personalCatalogo.map((p) => (
+                    <option key={p.id_personal} value={p.id_personal}>
+                      {p.nombre} {p.apellido} (#{p.id_personal})
                     </option>
                   ))}
                 </select>
               </div>
+            ) : null}
 
-              <div>
-                <label>Precio aplicado</label>
-                <br />
+            <div className="form-row two-cols">
+              <div className="form-field">
+                <label>Fecha / hora inicio</label>
                 <input
-                  type="number"
-                  min="1"
-                  value={it.precio_aplicado}
-                  onChange={(e) =>
-                    updateItem(idx, { precio_aplicado: e.target.value })
-                  }
+                  type="datetime-local"
+                  value={fechaInicioLocal}
+                  onChange={(e) => setFechaInicioLocal(e.target.value)}
                 />
               </div>
 
-              <div>
-                <strong>Subtotal:</strong> {moneyCLP(it.precio_aplicado)}
+              <div className="form-field">
+                <label>Traslado (min)</label>
+                <input
+                  type="number"
+                  min="0"
+                  step="1"
+                  value={trasladoMin}
+                  onChange={(e) => setTrasladoMin(e.target.value)}
+                />
               </div>
-
-              {items.length > 1 ? (
-                <button type="button" onClick={() => removeItem(idx)}>
-                  Quitar servicio
-                </button>
-              ) : null}
-
-              <hr />
             </div>
-          ))}
 
-          <button type="button" onClick={addItem}>
-            + Agregar servicio
-          </button>
+            <h3 style={{ textAlign: "center", margin: "14px 0 8px" }}>Servicios</h3>
 
-          <p>
-            <strong>Total:</strong> {moneyCLP(total)}
-          </p>
+            {items.map((it, idx) => (
+              <div key={idx} className="item-card">
+                <div className="form-field">
+                  <label>Servicio</label>
+                  <select
+                    value={it.id_servicio}
+                    onChange={(e) => onChangeServicio(idx, e.target.value)}
+                  >
+                    <option value="">-- Seleccionar --</option>
+                    {serviciosCatalogo.map((s) => (
+                      <option key={s.id_servicio} value={s.id_servicio}>
+                        {s.nombre} - {moneyCLP(s.precio_base)}
+                      </option>
+                    ))}
+                  </select>
+                </div>
 
-          <button type="submit">{saving ? "Guardando..." : "Guardar cambios"}</button>
-        </fieldset>
-      </form>
+                <div className="form-row two-cols">
+                  <div className="form-field">
+                    <label>Precio aplicado</label>
+                    <input
+                      type="number"
+                      min="1"
+                      value={it.precio_aplicado}
+                      onChange={(e) =>
+                        updateItem(idx, { precio_aplicado: e.target.value })
+                      }
+                    />
+                  </div>
+
+                  <div className="form-field">
+                    <label>Subtotal</label>
+                    <div className="input-like">{moneyCLP(it.precio_aplicado)}</div>
+                  </div>
+                </div>
+
+                {items.length > 1 ? (
+                  <div className="form-actions" style={{ marginTop: 10 }}>
+                    <button type="button" className="btn" onClick={() => removeItem(idx)}>
+                      Quitar servicio
+                    </button>
+                  </div>
+                ) : null}
+              </div>
+            ))}
+
+            <div className="form-actions" style={{ marginTop: 10 }}>
+              <button type="button" className="btn" onClick={addItem} disabled={saving}>
+                + Agregar servicio
+              </button>
+            </div>
+
+            <div className="total-box">
+              <strong>Total:</strong> {moneyCLP(total)}
+            </div>
+
+            <div className="form-actions">
+              <button type="submit" className="btn primary" disabled={saving}>
+                {saving ? "Guardando..." : "Guardar cambios"}
+              </button>
+
+              <button type="button" className="btn" onClick={() => navigate(-1)} disabled={saving}>
+                Cancelar
+              </button>
+            </div>
+          </fieldset>
+        </form>
+      </div>
     </div>
   );
 }

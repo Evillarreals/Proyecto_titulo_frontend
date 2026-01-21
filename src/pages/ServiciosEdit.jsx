@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams, Link } from "react-router-dom";
 import http from "../api/http";
+import "../App.css";
 
 export default function ServiciosEdit() {
   const { id } = useParams();
@@ -26,7 +27,6 @@ export default function ServiciosEdit() {
         setError("");
 
         const { data } = await http.get(`/servicios/${id}`);
-
         const srv = data?.servicio ?? data;
 
         if (!srv) throw new Error("No se encontró el servicio");
@@ -73,8 +73,10 @@ export default function ServiciosEdit() {
     setError("");
 
     if (!form.nombre?.trim()) return setError("Nombre es obligatorio");
-    if (!Number.isFinite(form.duracion_min) || form.duracion_min <= 0) return setError("Duración debe ser > 0");
-    if (!Number.isFinite(form.precio_base) || form.precio_base <= 0) return setError("Precio debe ser > 0");
+    if (!Number.isFinite(form.duracion_min) || form.duracion_min <= 0)
+      return setError("Duración debe ser mayor a 0");
+    if (!Number.isFinite(form.precio_base) || form.precio_base <= 0)
+      return setError("Precio debe ser mayor a 0");
 
     try {
       setSaving(true);
@@ -96,59 +98,88 @@ export default function ServiciosEdit() {
     }
   }
 
-  if (loading) return <p>Cargando...</p>;
+  if (loading) {
+    return (
+      <div className="page-center">
+        <p>Cargando...</p>
+      </div>
+    );
+  }
 
   return (
-    <div>
-      <h1>Editar servicio</h1>
+    <div className="page-center">
+      <div className="form-card">
+        <h2 className="form-title">Editar servicio</h2>
 
-      {error ? <p style={{ color: "red" }}>{error}</p> : null}
-
-      <form onSubmit={onSubmit}>
-        <div>
-          <label>Nombre</label>
-          <br />
-          <input
-            name="nombre"
-            value={form.nombre}
-            onChange={onChange}
-            placeholder="Nombre"
-          />
+        <div className="form-actions" style={{ marginBottom: 18 }}>
+          <Link to={`/servicios/${id}`} className="btn">
+            Volver al detalle
+          </Link>
         </div>
 
-        <div>
-          <label>Duración (minutos)</label>
-          <br />
-          <input
-            type="number"
-            name="duracion_min"
-            value={form.duracion_min}
-            onChange={onChange}
-            min={1}
-            step={1}
-          />
-        </div>
+        {error && <p className="helper-error">{error}</p>}
 
-        <div>
-          <label>Precio</label>
-          <br />
-          <input
-            type="number"
-            name="precio_base"
-            value={form.precio_base}
-            onChange={onChange}
-            min={1}
-            step={1}
-          />
-        </div>
+        <form onSubmit={onSubmit} className="form">
+          <fieldset disabled={saving} style={{ border: "none", padding: 0 }}>
+            <div className="form-field">
+              <label>Nombre</label>
+              <input
+                name="nombre"
+                value={form.nombre}
+                onChange={onChange}
+                placeholder="Nombre del servicio"
+              />
+            </div>
 
-        <div style={{ marginTop: 12 }}>
-          <button type="submit" disabled={saving}>
-            {saving ? "Guardando..." : "Guardar cambios"}
-          </button>{" "}
-          <Link to={`/servicios/${id}`}>Cancelar</Link>
-        </div>
-      </form>
+            <div className="form-row two-cols">
+              <div className="form-field">
+                <label>Duración (min)</label>
+                <input
+                  type="number"
+                  name="duracion_min"
+                  value={form.duracion_min}
+                  onChange={onChange}
+                  min={1}
+                  step={1}
+                />
+              </div>
+
+              <div className="form-field">
+                <label>Precio base</label>
+                <input
+                  type="number"
+                  name="precio_base"
+                  value={form.precio_base}
+                  onChange={onChange}
+                  min={1}
+                  step={1}
+                />
+              </div>
+            </div>
+
+            <div className="form-checkbox">
+              <input
+                type="checkbox"
+                name="activo"
+                checked={form.activo}
+                onChange={onChange}
+              />
+              <label>Servicio activo</label>
+            </div>
+
+
+            <div className="form-actions">
+              <button type="submit" className="btn primary" disabled={saving}>
+                {saving ? "Guardando..." : "Guardar cambios"}
+              </button>
+
+              <Link to={`/servicios/${id}`} className="btn">
+                Cancelar
+              </Link>
+            </div>
+          </fieldset>
+        </form>
+      </div>
     </div>
   );
 }

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext";
+import "../App.css";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -29,19 +30,19 @@ export default function Login() {
     }
   };
 
-  return (
-    <div>
-      <h1>Köra Skin</h1>
-      <hr />
+ return (
+  <div className="login-wrapper">
+
+    <div className="login-card">
 
       <h2>Iniciar sesión</h2>
 
-      {error && <p style={{ color: "red" }}>{error}</p>}
+      {error && <p className="login-error">{error}</p>}
 
-      <form onSubmit={handleSubmit}>
-        <div>
+      <form onSubmit={handleSubmit} className="login-form">
+
+        <div className="login-field">
           <label htmlFor="email">Email</label>
-          <br />
           <input
             id="email"
             name="email"
@@ -52,9 +53,8 @@ export default function Login() {
           />
         </div>
 
-        <div style={{ marginTop: 8 }}>
+        <div className="login-field">
           <label htmlFor="password">Contraseña</label>
-          <br />
           <input
             id="password"
             name="password"
@@ -65,10 +65,12 @@ export default function Login() {
           />
         </div>
 
-        <div style={{ marginTop: 12 }}>
-          <button type="submit">Entrar</button>
-        </div>
+        <button type="submit" className="login-btn">
+          Entrar
+        </button>
+
       </form>
     </div>
-  );
+  </div>
+);
 }

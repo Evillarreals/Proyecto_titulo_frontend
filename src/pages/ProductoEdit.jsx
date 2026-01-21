@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import http from "../api/http";
+import "../App.css";
 
 export default function ProductoEdit() {
   const { id } = useParams();
@@ -37,7 +38,6 @@ export default function ProductoEdit() {
         stock_minimo: p?.stock_minimo ?? "",
       });
     } catch (e) {
-      console.error(e);
       setErr("No se pudo cargar el producto");
     } finally {
       setLoading(false);
@@ -53,14 +53,16 @@ export default function ProductoEdit() {
     if (!form.marca.trim()) return "Marca es obligatoria";
 
     const precio = Number(form.precio);
-    if (!Number.isFinite(precio) || precio <= 0) return "Precio inválido (debe ser > 0)";
+    if (!Number.isFinite(precio) || precio <= 0)
+      return "Precio inválido (debe ser mayor a 0)";
 
     const stock = Number(form.stock);
-    if (!Number.isFinite(stock) || stock < 0) return "Stock inválido (debe ser >= 0)";
+    if (!Number.isFinite(stock) || stock < 0)
+      return "Stock inválido (debe ser mayor o igual a 0)";
 
     const stockMin = Number(form.stock_minimo);
     if (!Number.isFinite(stockMin) || stockMin < 0)
-      return "Stock mínimo inválido (debe ser >= 0)";
+      return "Stock mínimo inválido (debe ser mayor o igual a 0)";
 
     return "";
   }
@@ -88,84 +90,114 @@ export default function ProductoEdit() {
 
       navigate(`/productos/${id}`);
     } catch (e2) {
-      console.error(e2);
       setErr(e2?.response?.data?.message || "No se pudo actualizar el producto");
     } finally {
       setSaving(false);
     }
   }
 
-  if (loading) return <div>Cargando...</div>;
+  if (loading) {
+    return (
+      <div className="page-center">
+        <p>Cargando...</p>
+      </div>
+    );
+  }
 
   return (
-    <div>
-      <h1>Editar producto</h1>
+    <div className="page-center">
+      <div className="form-card">
+        <h2 className="form-title">Editar producto</h2>
 
-      <div style={{ marginBottom: 10 }}>
-        <Link to={`/productos/${id}`}>Volver al detalle</Link>{" "}
-        |{" "}
-        <button type="button" onClick={fetchOne} disabled={saving}>
-          Recargar
-        </button>
+        {/* acciones superiores */}
+        <div className="form-actions" style={{ marginBottom: 18 }}>
+          <Link to={`/productos/${id}`} className="btn">
+            Volver al detalle
+          </Link>
+
+          <button
+            type="button"
+            className="btn"
+            onClick={fetchOne}
+            disabled={saving}
+          >
+            Recargar
+          </button>
+        </div>
+
+        {err && <p className="helper-error">{err}</p>}
+
+        <form onSubmit={onSubmit} className="form">
+          <fieldset disabled={saving} style={{ border: "none", padding: 0 }}>
+            <div className="form-field">
+              <label>Nombre</label>
+              <input
+                value={form.nombre}
+                onChange={(e) => setField("nombre", e.target.value)}
+              />
+            </div>
+
+            <div className="form-field">
+              <label>Marca</label>
+              <input
+                value={form.marca}
+                onChange={(e) => setField("marca", e.target.value)}
+              />
+            </div>
+
+            <div className="form-row two-cols">
+              <div className="form-field">
+                <label>Precio</label>
+                <input
+                  type="number"
+                  min="1"
+                  value={form.precio}
+                  onChange={(e) => setField("precio", e.target.value)}
+                />
+              </div>
+
+              <div className="form-field">
+                <label>Stock</label>
+                <input
+                  type="number"
+                  min="0"
+                  value={form.stock}
+                  onChange={(e) => setField("stock", e.target.value)}
+                />
+              </div>
+            </div>
+
+            <div className="form-field">
+              <label>Stock mínimo</label>
+              <input
+                type="number"
+                min="0"
+                value={form.stock_minimo}
+                onChange={(e) => setField("stock_minimo", e.target.value)}
+              />
+            </div>
+
+            <div className="form-actions">
+              <button
+                type="submit"
+                className="btn primary"
+                disabled={saving}
+              >
+                {saving ? "Guardando..." : "Guardar cambios"}
+              </button>
+
+              <button
+                type="button"
+                className="btn"
+                onClick={() => navigate(-1)}
+                disabled={saving}
+              >
+                Cancelar
+              </button>
+            </div>
+          </fieldset>
+        </form>
       </div>
-
-      {err ? <p style={{ color: "crimson" }}>{err}</p> : null}
-
-      <form onSubmit={onSubmit}>
-        <fieldset disabled={saving}>
-          <div>
-            <label>Nombre</label>
-            <br />
-            <input value={form.nombre} onChange={(e) => setField("nombre", e.target.value)} />
-          </div>
-
-          <div>
-            <label>Marca</label>
-            <br />
-            <input value={form.marca} onChange={(e) => setField("marca", e.target.value)} />
-          </div>
-
-          <div>
-            <label>Precio</label>
-            <br />
-            <input
-              type="number"
-              min="1"
-              value={form.precio}
-              onChange={(e) => setField("precio", e.target.value)}
-            />
-          </div>
-
-          <div>
-            <label>Stock</label>
-            <br />
-            <input
-              type="number"
-              min="0"
-              value={form.stock}
-              onChange={(e) => setField("stock", e.target.value)}
-            />
-          </div>
-
-          <div>
-            <label>Stock mínimo</label>
-            <br />
-            <input
-              type="number"
-              min="0"
-              value={form.stock_minimo}
-              onChange={(e) => setField("stock_minimo", e.target.value)}
-            />
-          </div>
-
-          <div style={{ marginTop: 10 }}>
-            <button type="submit">{saving ? "Guardando..." : "Guardar cambios"}</button>{" "}
-            <button type="button" onClick={() => navigate(-1)}>
-              Cancelar
-            </button>
-          </div>
-        </fieldset>
-      </form>
     </div>
   );
 }

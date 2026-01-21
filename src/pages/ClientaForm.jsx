@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import http from "../api/http";
+import "../App.css";
 
 export default function ClientaForm() {
   const navigate = useNavigate();
@@ -62,83 +63,91 @@ export default function ClientaForm() {
   };
 
   return (
-    <div>
-      <h2>Nueva clienta</h2>
+    <div className="page-center">
 
-      {error && <p style={{ color: "crimson" }}>{error}</p>}
+      <div className="form-card">
 
-      <form onSubmit={onSubmit}>
-        <fieldset disabled={saving} style={{ maxWidth: 520 }}>
-          <div>
-            <label>
-              Nombre<br />
-              <input
-                name="nombre"
-                value={form.nombre}
-                onChange={onChange}
-                autoComplete="given-name"
-              />
-            </label>
-          </div>
+        <h2 className="form-title">Nueva clienta</h2>
 
-          <div>
-            <label>
-              Apellido<br />
-              <input
-                name="apellido"
-                value={form.apellido}
-                onChange={onChange}
-                autoComplete="family-name"
-              />
-            </label>
-          </div>
+        {error && <p className="helper-error">{error}</p>}
 
-          <div>
-            <label>
-              Teléfono<br />
+        <form onSubmit={onSubmit} className="form">
+          <fieldset disabled={saving} style={{ border: "none", padding: 0 }}>
+
+            <div className="form-row two-cols">
+              <div className="form-field">
+                <label>Nombre</label>
+                <input
+                  name="nombre"
+                  value={form.nombre}
+                  onChange={onChange}
+                  autoComplete="given-name"
+                />
+              </div>
+
+              <div className="form-field">
+                <label>Apellido</label>
+                <input
+                  name="apellido"
+                  value={form.apellido}
+                  onChange={onChange}
+                  autoComplete="family-name"
+                />
+              </div>
+            </div>
+
+            <div className="form-field">
+              <label>Teléfono</label>
               <input
                 name="telefono"
                 value={form.telefono}
                 onChange={onChange}
                 autoComplete="tel"
               />
-            </label>
-          </div>
+            </div>
 
-          <div>
-            <label>
-              Email (opcional)<br />
+            <div className="form-field">
+              <label>Email (opcional)</label>
               <input
                 name="email"
                 value={form.email}
                 onChange={onChange}
                 autoComplete="email"
               />
-            </label>
-          </div>
+            </div>
 
-          <div>
-            <label>
-              Dirección (opcional)<br />
+            <div className="form-field">
+              <label>Dirección (opcional)</label>
               <input
                 name="direccion"
                 value={form.direccion}
                 onChange={onChange}
                 autoComplete="street-address"
               />
-            </label>
-          </div>
+            </div>
 
-          <div style={{ marginTop: 12 }}>
-            <button type="submit" disabled={!canSubmit || saving}>
-              {saving ? "Registrando..." : "Registrar clienta"}
-            </button>{" "}
-            <button type="button" onClick={() => navigate(-1)} disabled={saving}>
-              Volver
-            </button>
-          </div>
-        </fieldset>
-      </form>
+            <div className="form-actions">
+              <button
+                type="submit"
+                className="btn primary"
+                disabled={!canSubmit || saving}
+              >
+                {saving ? "Registrando..." : "Registrar clienta"}
+              </button>
+
+              <button
+                type="button"
+                className="btn"
+                onClick={() => navigate(-1)}
+                disabled={saving}
+              >
+                Volver
+              </button>
+            </div>
+
+          </fieldset>
+        </form>
+      </div>
     </div>
   );
 }

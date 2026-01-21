@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import http from "../api/http";
+import "../App.css";
 
 export default function ClientaEdit() {
   const { id } = useParams();
@@ -27,7 +28,6 @@ export default function ClientaEdit() {
     setErr("");
     try {
       const res = await http.get(`/clientas/${id}`);
-
       const c = res.data?.clienta ?? res.data?.data ?? res.data;
 
       setForm({
@@ -38,7 +38,6 @@ export default function ClientaEdit() {
         direccion: c?.direccion ?? "",
       });
     } catch (e) {
-      console.error(e);
       setErr("No se pudo cargar la clienta");
     } finally {
       setLoading(false);
@@ -81,84 +80,114 @@ export default function ClientaEdit() {
 
       navigate(`/clientas/${id}`);
     } catch (e2) {
-      console.error(e2);
       setErr(e2?.response?.data?.message || "No se pudo actualizar la clienta");
     } finally {
       setSaving(false);
     }
   }
 
-  if (loading) return <div>Cargando...</div>;
+  if (loading) {
+    return (
+      <div className="page-center">
+        <p>Cargando...</p>
+      </div>
+    );
+  }
 
   return (
-    <div>
-      <h1>Editar clienta</h1>
+    <div className="page-center">
 
-      <div style={{ marginBottom: 10 }}>
-        <Link to={`/clientas/${id}`}>Volver al detalle</Link>{" "}
-        |{" "}
-        <button type="button" onClick={fetchOne} disabled={saving}>
-          Recargar
-        </button>
+      <div className="form-card">
+
+        <h2 className="form-title">Editar clienta</h2>
+
+        <div className="form-actions"style={{marginBottom: 20}}>
+          <Link
+            to={`/clientas/${id}`}
+            className="btn"
+          >
+            Volver al detalle
+          </Link>
+
+          <button
+            type="button"
+            className="btn"
+            onClick={fetchOne}
+            disabled={saving}
+          >
+            Recargar
+          </button>
+        </div>
+
+        {err && <p className="helper-error">{err}</p>}
+
+        <form onSubmit={onSubmit} className="form">
+          <fieldset disabled={saving} style={{ border: "none", padding: 0 }}>
+
+            <div className="form-row two-cols">
+              <div className="form-field">
+                <label>Nombre</label>
+                <input
+                  value={form.nombre}
+                  onChange={(e) => setField("nombre", e.target.value)}
+                />
+              </div>
+
+              <div className="form-field">
+                <label>Apellido</label>
+                <input
+                  value={form.apellido}
+                  onChange={(e) => setField("apellido", e.target.value)}
+                />
+              </div>
+            </div>
+
+            <div className="form-field">
+              <label>Teléfono</label>
+              <input
+                value={form.telefono}
+                onChange={(e) => setField("telefono", e.target.value)}
+              />
+            </div>
+
+            <div className="form-field">
+              <label>Email</label>
+              <input
+                value={form.email}
+                onChange={(e) => setField("email", e.target.value)}
+              />
+            </div>
+
+            <div className="form-field">
+              <label>Dirección</label>
+              <input
+                value={form.direccion}
+                onChange={(e) => setField("direccion", e.target.value)}
+              />
+            </div>
+
+            <div className="form-actions">
+              <button
+                type="submit"
+                className="btn primary"
+                disabled={saving}
+              >
+                {saving ? "Guardando..." : "Guardar cambios"}
+              </button>
+
+              <button
+                type="button"
+                className="btn"
+                onClick={() => navigate(-1)}
+                disabled={saving}
+              >
+                Cancelar
+              </button>
+            </div>
+
+          </fieldset>
+        </form>
       </div>
-
-      {err ? <p style={{ color: "crimson" }}>{err}</p> : null}
-
-      <form onSubmit={onSubmit}>
-        <fieldset disabled={saving}>
-          <div>
-            <label>Nombre</label>
-            <br />
-            <input
-              value={form.nombre}
-              onChange={(e) => setField("nombre", e.target.value)}
-            />
-          </div>
-
-          <div>
-            <label>Apellido</label>
-            <br />
-            <input
-              value={form.apellido}
-              onChange={(e) => setField("apellido", e.target.value)}
-            />
-          </div>
-
-          <div>
-            <label>Teléfono</label>
-            <br />
-            <input
-              value={form.telefono}
-              onChange={(e) => setField("telefono", e.target.value)}
-            />
-          </div>
-
-          <div>
-            <label>Email</label>
-            <br />
-            <input
-              value={form.email}
-              onChange={(e) => setField("email", e.target.value)}
-            />
-          </div>
-
-          <div>
-            <label>Dirección</label>
-            <br />
-            <input
-              value={form.direccion}
-              onChange={(e) => setField("direccion", e.target.value)}
-            />
-          </div>
-
-          <div style={{ marginTop: 10 }}>
-            <button type="submit">{saving ? "Guardando..." : "Guardar cambios"}</button>{" "}
-            <button type="button" onClick={() => navigate(-1)}>
-              Cancelar
-            </button>
-          </div>
-        </fieldset>
-      </form>
     </div>
   );
 }

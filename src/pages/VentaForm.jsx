@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import http from "../api/http";
 import { useAuth } from "../auth/AuthContext";
+import "../App.css";
 
 export default function VentaForm() {
   const navigate = useNavigate();
@@ -185,124 +186,147 @@ export default function VentaForm() {
     }
   }
 
-  if (loading) return <div>Cargando...</div>;
+  if (loading) {
+    return (
+      <div className="page-center">
+        <p>Cargando...</p>
+      </div>
+    );
+  }
 
   return (
-    <div>
-      <h1>Nueva venta</h1>
+    <div className="page-center">
+      <div className="form-card">
+        <h2 className="form-title">Nueva venta</h2>
 
-      {error ? <p style={{ color: "crimson" }}>{error}</p> : null}
+        {error ? <p className="helper-error">{error}</p> : null}
 
-      {warnings.length > 0 && (
-        <div style={{ border: "1px solid #f00", padding: 10, marginBottom: 10 }}>
-          <strong>⚠️ Stock bajo:</strong>
-          <ul>
-            {warnings.map((w) => (
-              <li key={w.id_producto}>
-                {w.producto_nombre} — queda {w.stock_actual} (mínimo {w.stock_minimo})
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
-
-      <form onSubmit={onSubmit}>
-        <fieldset disabled={submitting}>
-          <div>
-            <label>Clienta</label>
-            <br />
-            <select value={idClienta} onChange={(e) => setIdClienta(e.target.value)}>
-              <option value="">-- Seleccionar --</option>
-              {clientas.map((c) => (
-                <option key={c.id_clienta} value={c.id_clienta}>
-                  {c.nombre} {c.apellido} (#{c.id_clienta})
-                </option>
+        {warnings.length > 0 && (
+          <div className="warn-box">
+            <strong>⚠️ Stock bajo:</strong>
+            <ul>
+              {warnings.map((w) => (
+                <li key={w.id_producto}>
+                  {w.producto_nombre} — queda {w.stock_actual} (mínimo {w.stock_minimo})
+                </li>
               ))}
-            </select>
+            </ul>
           </div>
+        )}
 
-          <div style={{ marginTop: 10 }}>
-            <label>Vendedora</label>
-            <br />
-            <select value={idVendedora} onChange={(e) => setIdVendedora(e.target.value)}>
-              <option value="">-- Seleccionar --</option>
-              {vendedoras.map((p) => (
-                <option key={p.id_personal} value={p.id_personal}>
-                  {p.nombre} {p.apellido} (#{p.id_personal})
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <hr />
-
-          <h3>Productos</h3>
-
-          {items.map((it, idx) => (
-            <div key={idx} style={{ marginBottom: 12 }}>
-              <div>
-                <label>Producto</label>
-                <br />
-                <select value={it.id_producto} onChange={(e) => onChangeProducto(idx, e.target.value)}>
-                  <option value="">-- Seleccionar --</option>
-                  {productos.map((p) => (
-                    <option key={p.id_producto} value={p.id_producto}>
-                      {p.nombre} ({p.marca}) - ${p.precio} | stock: {p.stock}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label>Cantidad</label>
-                <br />
-                <input
-                  type="number"
-                  min="1"
-                  value={it.cantidad}
-                  onChange={(e) => updateItem(idx, { cantidad: e.target.value })}
-                />
-              </div>
-
-              <div>
-                <label>Precio unitario</label>
-                <br />
-                <input
-                  type="number"
-                  min="1"
-                  value={it.precio_unitario}
-                  onChange={(e) => updateItem(idx, { precio_unitario: e.target.value })}
-                />
-              </div>
-
-              <div>
-                <strong>Subtotal:</strong> ${Number(it.cantidad || 0) * Number(it.precio_unitario || 0)}
-              </div>
-
-              {items.length > 1 ? (
-                <button type="button" onClick={() => removeItem(idx)}>
-                  Quitar item
-                </button>
-              ) : null}
-
-              <hr />
+        <form onSubmit={onSubmit} className="form">
+          <fieldset disabled={submitting} style={{ border: "none", padding: 0 }}>
+            <div className="form-field">
+              <label>Clienta</label>
+              <select value={idClienta} onChange={(e) => setIdClienta(e.target.value)}>
+                <option value="">-- Seleccionar --</option>
+                {clientas.map((c) => (
+                  <option key={c.id_clienta} value={c.id_clienta}>
+                    {c.nombre} {c.apellido} (#{c.id_clienta})
+                  </option>
+                ))}
+              </select>
             </div>
-          ))}
 
-          <button type="button" onClick={addItem}>
-            + Agregar producto
-          </button>
+            <div className="form-field">
+              <label>Vendedora</label>
+              <select value={idVendedora} onChange={(e) => setIdVendedora(e.target.value)}>
+                <option value="">-- Seleccionar --</option>
+                {vendedoras.map((p) => (
+                  <option key={p.id_personal} value={p.id_personal}>
+                    {p.nombre} {p.apellido} (#{p.id_personal})
+                  </option>
+                ))}
+              </select>
+            </div>
 
-          <p>
-            <strong>Total:</strong> ${total}
-          </p>
+            <h3 style={{ textAlign: "center", margin: "12px 0 6px" }}>Productos</h3>
 
-          <button type="submit">{submitting ? "Guardando..." : "Registrar venta"}</button>
-          <button type="button" onClick={() => navigate("/dashboard")} style={{ marginLeft: 8 }}>
-            Volver
-          </button>
-        </fieldset>
-      </form>
+            {items.map((it, idx) => {
+              const subtotal = Number(it.cantidad || 0) * Number(it.precio_unitario || 0);
+
+              return (
+                <div key={idx} className="item-card">
+                  <div className="form-field">
+                    <label>Producto</label>
+                    <select
+                      value={it.id_producto}
+                      onChange={(e) => onChangeProducto(idx, e.target.value)}
+                    >
+                      <option value="">-- Seleccionar --</option>
+                      {productos.map((p) => (
+                        <option key={p.id_producto} value={p.id_producto}>
+                          {p.nombre} ({p.marca}) - ${p.precio} | stock: {p.stock}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="form-row two-cols">
+                    <div className="form-field">
+                      <label>Cantidad</label>
+                      <input
+                        type="number"
+                        min="1"
+                        value={it.cantidad}
+                        onChange={(e) => updateItem(idx, { cantidad: e.target.value })}
+                      />
+                    </div>
+
+                    <div className="form-field">
+                      <label>Precio unitario</label>
+                      <input
+                        type="number"
+                        min="1"
+                        value={it.precio_unitario}
+                        onChange={(e) => updateItem(idx, { precio_unitario: e.target.value })}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="form-field">
+                    <label>Subtotal</label>
+                    <div className="input-like">${subtotal}</div>
+                  </div>
+
+                  {items.length > 1 ? (
+                    <div className="form-actions" style={{ marginTop: 10 }}>
+                      <button type="button" className="btn" onClick={() => removeItem(idx)}>
+                        Quitar producto
+                      </button>
+                    </div>
+                  ) : null}
+                </div>
+              );
+            })}
+
+            <div className="form-actions" style={{ marginTop: 10 }}>
+              <button type="button" className="btn" onClick={addItem}>
+                Agregar producto
+              </button>
+            </div>
+
+            <div className="total-box">
+              <strong>Total:</strong> ${total}
+            </div>
+
+            <div className="form-actions">
+              <button type="submit" className="btn primary" disabled={submitting}>
+                {submitting ? "Guardando..." : "Registrar venta"}
+              </button>
+
+              <button
+                type="button"
+                className="btn"
+                onClick={() => navigate("/dashboard")}
+                disabled={submitting}
+              >
+                Volver
+              </button>
+            </div>
+          </fieldset>
+        </form>
+      </div>
     </div>
   );
 }

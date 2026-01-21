@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import http from "../api/http";
+import "../App.css";
 
 function formatDateTime(isoString) {
   if (!isoString) return "-";
@@ -80,131 +81,195 @@ export default function AtencionDetail() {
     return totalPagado >= total ? "pagado" : "pendiente";
   }, [resumenPago, atencion, pagos]);
 
-  if (loading) return <div>Cargando...</div>;
-  if (err) return <div style={{ color: "crimson" }}>{err}</div>;
-  if (!data || !atencion) return <div>No existe la atención.</div>;
+  if (loading) {
+    return (
+      <div className="page-center">
+        <p>Cargando...</p>
+      </div>
+    );
+  }
+
+  if (err) {
+    return (
+      <div className="page-center">
+        <p className="helper-error">{err}</p>
+      </div>
+    );
+  }
+
+  if (!data || !atencion) {
+    return (
+      <div className="page-center">
+        <div className="form-card">
+          <h2 className="form-title">Detalle atención</h2>
+          <p style={{ textAlign: "center" }}>No existe la atención.</p>
+          <div className="form-actions">
+            <button type="button" className="btn" onClick={() => navigate(-1)}>
+              Volver
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const telefono = atencion.clienta_telefono ?? atencion.cliente_telefono ?? "-";
   const direccion = atencion.clienta_direccion ?? atencion.cliente_direccion ?? "-";
 
+  const estadoAtencionTxt = atencion.estado_atencion ?? "-";
+  const chipAtencion =
+    String(estadoAtencionTxt).toLowerCase() === "realizada"
+      ? "chip ok"
+      : String(estadoAtencionTxt).toLowerCase() === "cancelada"
+      ? "chip danger"
+      : "chip";
+
+  const chipPago = String(estadoPago).toLowerCase() === "pagado" ? "chip ok" : "chip";
+
   return (
-    <div>
-      <h1>Detalle Atención</h1>
+    <div className="page-center">
+      <div className="list-card">
+        <div className="list-header">
+          <h2 className="list-title">Detalle atención #{atencion.id_atencion}</h2>
 
-      <div style={{ marginBottom: 12 }}>
-        <button type="button" onClick={() => navigate(-1)}>
-          Volver
-        </button>{" "}
-        | <Link to={`/atenciones/${atencion.id_atencion}/pagos/nuevo`}>Ir a pagar</Link>{" "}
-        | <Link to={`/atenciones/${atencion.id_atencion}/editar`}>Editar</Link>
+          <div className="list-header-actions">
+            <button type="button" className="btn" onClick={() => navigate(-1)}>
+              Volver
+            </button>
+
+            <Link to={`/atenciones/${atencion.id_atencion}/editar`} className="btn">
+              Editar
+            </Link>
+
+            <Link to={`/atenciones/${atencion.id_atencion}/pagos/nuevo`} className="btn primary">
+              Ir a pagar
+            </Link>
+
+            <button type="button" className="btn" onClick={fetchDetail}>
+              Recargar
+            </button>
+          </div>
+        </div>
+
+        <div className="resume-box" style={{ marginTop: 14 }}>
+          <div className="card-top" style={{ marginBottom: 10 }}>
+            <div className="card-title">{clienteNombre || "-"}</div>
+            <div className="card-sub">{formatDateTime(atencion.fecha_inicio)}</div>
+          </div>
+
+          <div className="card-mid" style={{ justifyContent: "space-between" }}>
+            <div className="card-line">
+              <span className="muted">Masoterapeuta:</span>{" "}
+              <strong>{masoterapeutaNombre || "-"}</strong>
+            </div>
+
+            <div className="chips">
+              <span className={chipAtencion}>{estadoAtencionTxt}</span>
+              <span className={chipPago}>{estadoPago}</span>
+            </div>
+          </div>
+
+          <div className="card-mid" style={{ justifyContent: "flex-start" }}>
+            <div className="card-line">
+              <span className="muted">Teléfono:</span> {telefono}
+            </div>
+            <div className="card-line">
+              <span className="muted">Dirección:</span> {direccion}
+            </div>
+          </div>
+
+          <div className="card-mid" style={{ justifyContent: "space-between" }}>
+            <div className="card-line">
+              <span className="muted">Total:</span>{" "}
+              <strong>{formatMoney(atencion.total)}</strong>
+            </div>
+            <div className="card-line">
+              <span className="muted">Duración total:</span>{" "}
+              <strong>{duracionTotal} min</strong>
+            </div>
+          </div>
+        </div>
+
+        <div className="filters-card" style={{ marginTop: 14 }}>
+          <h3 className="filters-title">Servicios asociados</h3>
+
+          {servicios.length === 0 ? (
+            <p style={{ textAlign: "center" }}>No hay servicios asociados.</p>
+          ) : (
+            <div className={`cards-grid ${servicios.length % 2 === 1 ? "odd" : ""}`}>
+              {servicios.map((s) => (
+                <div
+                  key={s.id_atencion_servicio ?? `${s.id_servicio}-${s.servicio_nombre}`}
+                  className="list-item-card"
+                >
+                  <div className="card-top">
+                    <div className="card-title">{s.servicio_nombre ?? "-"}</div>
+                    <div className="card-sub">
+                      {Number(s.duracion_min ?? 0)} min
+                    </div>
+                  </div>
+
+                  <div className="card-mid" style={{ justifyContent: "flex-start" }}>
+                    <div className="card-line">
+                      <span className="muted">Precio aplicado:</span>{" "}
+                      <strong>{formatMoney(s.precio_aplicado)}</strong>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <div className="filters-card" style={{ marginTop: 14 }}>
+          <h3 className="filters-title">Pagos</h3>
+
+          {pagos.length === 0 ? (
+            <p style={{ textAlign: "center" }}>No hay pagos registrados.</p>
+          ) : (
+            <div className={`cards-grid ${pagos.length % 2 === 1 ? "odd" : ""}`}>
+              {pagos.map((p) => (
+                <div
+                  key={p.id_pago_atencion ?? `${p.fecha}-${p.monto}-${p.medio_pago}`}
+                  className="list-item-card"
+                >
+                  <div className="card-top">
+                    <div className="card-title">{formatMoney(p.monto)}</div>
+                    <div className="card-sub">{formatDateTime(p.fecha)}</div>
+                  </div>
+
+                  <div className="card-mid" style={{ justifyContent: "flex-start" }}>
+                    <div className="card-line">
+                      <span className="muted">Medio:</span> {p.medio_pago ?? "-"}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <div className="resume-box" style={{ marginTop: 14 }}>
+          <h3 style={{ textAlign: "center", marginTop: 0 }}>Resumen de pago</h3>
+
+          <div className="card-mid" style={{ justifyContent: "space-between" }}>
+            <div className="card-line">
+              <span className="muted">Total atención:</span>{" "}
+              <strong>{formatMoney(resumenPago?.totalAtencion ?? atencion.total)}</strong>
+            </div>
+
+            <div className="card-line">
+              <span className="muted">Total pagado:</span>{" "}
+              <strong>{formatMoney(resumenPago?.totalPagado ?? 0)}</strong>
+            </div>
+
+            <div className="card-line">
+              <span className="muted">Saldo:</span>{" "}
+              <strong>{formatMoney(resumenPago?.saldo ?? 0)}</strong>
+            </div>
+          </div>
+        </div>
       </div>
-
-      <hr />
-
-      <h2>Información general</h2>
-
-      <p>
-        <strong>Fecha:</strong> {formatDateTime(atencion.fecha_inicio)}
-      </p>
-
-      <p>
-        <strong>Clienta:</strong> {clienteNombre || "-"}
-      </p>
-      
-      <p>
-        <strong>Masoterapeuta:</strong> {masoterapeutaNombre || "-"}
-      </p>
-
-      <p>
-        <strong>Teléfono:</strong> {telefono}
-      </p>
-
-      <p>
-        <strong>Dirección:</strong> {direccion}
-      </p>
-
-      <p>
-        <strong>Total:</strong> {formatMoney(atencion.total)}
-      </p>
-
-      <p>
-        <strong>Estado atención:</strong> {atencion.estado_atencion ?? "-"}
-      </p>
-
-      <p>
-        <strong>Estado pago:</strong> {estadoPago}
-      </p>
-
-      <p>
-        <strong>Duración total:</strong> {duracionTotal} min
-      </p>
-
-      <hr />
-
-      <h2>Servicios asociados</h2>
-
-      {servicios.length === 0 ? (
-        <p>No hay servicios asociados.</p>
-      ) : (
-        <table border="1" cellPadding="6" cellSpacing="0">
-          <thead>
-            <tr>
-              <th>Servicio</th>
-              <th>Duración (min)</th>
-              <th>Precio aplicado</th>
-            </tr>
-          </thead>
-          <tbody>
-            {servicios.map((s) => (
-              <tr key={s.id_atencion_servicio ?? `${s.id_servicio}-${s.servicio_nombre}`}>
-                <td>{s.servicio_nombre ?? "-"}</td>
-                <td>{Number(s.duracion_min ?? 0)}</td>
-                <td>{formatMoney(s.precio_aplicado)}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      )}
-
-      <hr />
-
-      <h2>Pagos</h2>
-
-      {pagos.length === 0 ? (
-        <p>No hay pagos registrados.</p>
-      ) : (
-        <table border="1" cellPadding="6" cellSpacing="0">
-          <thead>
-            <tr>
-              <th>Fecha</th>
-              <th>Monto</th>
-              <th>Medio</th>
-            </tr>
-          </thead>
-          <tbody>
-            {pagos.map((p) => (
-              <tr key={p.id_pago_atencion ?? `${p.fecha}-${p.monto}-${p.medio_pago}`}>
-                <td>{formatDateTime(p.fecha)}</td>
-                <td>{formatMoney(p.monto)}</td>
-                <td>{p.medio_pago ?? "-"}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      )}
-
-      <hr />
-
-      <h3>Resumen de pago</h3>
-      <p>
-        <strong>Total atención:</strong> {formatMoney(resumenPago?.totalAtencion ?? atencion.total)}
-      </p>
-      <p>
-        <strong>Total pagado:</strong> {formatMoney(resumenPago?.totalPagado ?? 0)}
-      </p>
-      <p>
-        <strong>Saldo:</strong> {formatMoney(resumenPago?.saldo ?? 0)}
-      </p>
     </div>
   );
 }

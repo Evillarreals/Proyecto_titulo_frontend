@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import http from "../api/http";
+import "../App.css";
 
 export default function ProductoForm() {
   const navigate = useNavigate();
@@ -64,58 +65,52 @@ export default function ProductoForm() {
   };
 
   return (
-    <div>
-      <h2>Nuevo producto</h2>
+    <div className="page-center">
+      <div className="form-card">
+        <h2 className="form-title">Nuevo producto</h2>
 
-      {error && <p style={{ color: "crimson" }}>{error}</p>}
+        {error && <p className="helper-error">{error}</p>}
 
-      <form onSubmit={onSubmit}>
-        <fieldset disabled={saving} style={{ maxWidth: 520 }}>
-          <div>
-            <label>
-              Nombre<br />
+        <form onSubmit={onSubmit} className="form">
+          <fieldset disabled={saving} style={{ border: "none", padding: 0 }}>
+            <div className="form-field">
+              <label>Nombre</label>
               <input name="nombre" value={form.nombre} onChange={onChange} />
-            </label>
-          </div>
+            </div>
 
-          <div>
-            <label>
-              Marca (opcional)<br />
+            <div className="form-field">
+              <label>Marca (opcional)</label>
               <input name="marca" value={form.marca} onChange={onChange} />
-            </label>
-          </div>
+            </div>
 
-          <div>
-            <label>
-              Precio<br />
-              <input
-                name="precio"
-                type="number"
-                min="0"
-                step="1"
-                value={form.precio}
-                onChange={onChange}
-              />
-            </label>
-          </div>
+            <div className="form-row two-cols">
+              <div className="form-field">
+                <label>Precio</label>
+                <input
+                  name="precio"
+                  type="number"
+                  min="0"
+                  step="1"
+                  value={form.precio}
+                  onChange={onChange}
+                />
+              </div>
 
-          <div>
-            <label>
-              Stock<br />
-              <input
-                name="stock"
-                type="number"
-                min="0"
-                step="1"
-                value={form.stock}
-                onChange={onChange}
-              />
-            </label>
-          </div>
+              <div className="form-field">
+                <label>Stock</label>
+                <input
+                  name="stock"
+                  type="number"
+                  min="0"
+                  step="1"
+                  value={form.stock}
+                  onChange={onChange}
+                />
+              </div>
+            </div>
 
-          <div>
-            <label>
-              Stock mínimo<br />
+            <div className="form-field">
+              <label>Stock mínimo</label>
               <input
                 name="stock_minimo"
                 type="number"
@@ -124,19 +119,29 @@ export default function ProductoForm() {
                 value={form.stock_minimo}
                 onChange={onChange}
               />
-            </label>
-          </div>
+            </div>
 
-          <div style={{ marginTop: 12 }}>
-            <button type="submit" disabled={!canSubmit || saving}>
-              {saving ? "Registrando..." : "Registrar producto"}
-            </button>{" "}
-            <button type="button" onClick={() => navigate(-1)} disabled={saving}>
-              Volver
-            </button>
-          </div>
-        </fieldset>
-      </form>
+            <div className="form-actions">
+              <button
+                type="submit"
+                className="btn primary"
+                disabled={!canSubmit || saving}
+              >
+                {saving ? "Registrando..." : "Registrar producto"}
+              </button>
+
+              <button
+                type="button"
+                className="btn"
+                onClick={() => navigate(-1)}
+                disabled={saving}
+              >
+                Volver
+              </button>
+            </div>
+          </fieldset>
+        </form>
+      </div>
     </div>
   );
 }

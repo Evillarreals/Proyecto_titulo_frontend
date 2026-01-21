@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import http from "../api/http";
 import { useAuth } from "../auth/AuthContext";
+import "../App.css";
 
 export default function AtencionForm() {
   const navigate = useNavigate();
@@ -195,128 +196,148 @@ export default function AtencionForm() {
     }
   }
 
-  if (loading) return <div>Cargando...</div>;
+  if (loading) {
+    return (
+      <div className="page-center">
+        <p>Cargando...</p>
+      </div>
+    );
+  }
 
   return (
-    <div>
-      <h1>Nueva atención</h1>
+    <div className="page-center">
+      <div className="form-card">
+        <h2 className="form-title">Nueva atención</h2>
 
-      {error ? <p style={{ color: "crimson" }}>{error}</p> : null}
+        {error ? <p className="helper-error">{error}</p> : null}
 
-      <form onSubmit={onSubmit}>
-        <fieldset disabled={submitting}>
-          <div>
-            <label>Clienta</label>
-            <br />
-            <select value={idClienta} onChange={(e) => setIdClienta(e.target.value)}>
-              <option value="">-- Seleccionar --</option>
-              {clientas.map((c) => (
-                <option key={c.id_clienta} value={c.id_clienta}>
-                  {c.nombre} {c.apellido} (#{c.id_clienta})
-                </option>
-              ))}
-            </select>
-          </div>
+        <form onSubmit={onSubmit} className="form">
+          <fieldset disabled={submitting} style={{ border: "none", padding: 0 }}>
+            <div className="form-field">
+              <label>Clienta</label>
+              <select value={idClienta} onChange={(e) => setIdClienta(e.target.value)}>
+                <option value="">-- Seleccionar --</option>
+                {clientas.map((c) => (
+                  <option key={c.id_clienta} value={c.id_clienta}>
+                    {c.nombre} {c.apellido} (#{c.id_clienta})
+                  </option>
+                ))}
+              </select>
+            </div>
 
-          <div style={{ marginTop: 10 }}>
-            <label>Masoterapeuta</label>
-            <br />
-            <select value={idMasoterapeuta} onChange={(e) => setIdMasoterapeuta(e.target.value)}>
-              <option value="">-- Seleccionar --</option>
-              {masoterapeutas.map((p) => (
-                <option key={p.id_personal} value={p.id_personal}>
-                  {p.nombre} {p.apellido} (#{p.id_personal})
-                </option>
-              ))}
-            </select>
-          </div>
+            <div className="form-field">
+              <label>Masoterapeuta</label>
+              <select
+                value={idMasoterapeuta}
+                onChange={(e) => setIdMasoterapeuta(e.target.value)}
+              >
+                <option value="">-- Seleccionar --</option>
+                {masoterapeutas.map((p) => (
+                  <option key={p.id_personal} value={p.id_personal}>
+                    {p.nombre} {p.apellido} (#{p.id_personal})
+                  </option>
+                ))}
+              </select>
+            </div>
 
-          <div style={{ marginTop: 10 }}>
-            <label>Fecha y hora de inicio</label>
-            <br />
-            <input
-              type="datetime-local"
-              value={fechaInicio}
-              onChange={(e) => setFechaInicio(e.target.value)}
-            />
-          </div>
-
-          <div style={{ marginTop: 10 }}>
-            <label>Traslado (min)</label>
-            <br />
-            <input
-              type="number"
-              min="0"
-              value={trasladoMin}
-              onChange={(e) => setTrasladoMin(e.target.value)}
-            />
-          </div>
-
-          <hr />
-
-          <h3>Servicios</h3>
-
-          {items.map((it, idx) => (
-            <div key={idx} style={{ marginBottom: 12 }}>
-              <div>
-                <label>Servicio</label>
-                <br />
-                <select
-                  value={it.id_servicio}
-                  onChange={(e) => onChangeServicio(idx, e.target.value)}
-                >
-                  <option value="">-- Seleccionar --</option>
-                  {servicios.map((s) => {
-                    const precioLabel =
-                      s.precio_base != null ? s.precio_base : (s.precio != null ? s.precio : "");
-                    return (
-                      <option key={s.id_servicio} value={s.id_servicio}>
-                        {s.nombre} - ${precioLabel}
-                      </option>
-                    );
-                  })}
-                </select>
-              </div>
-
-              <div>
-                <label>Precio</label>
-                <br />
+            <div className="form-row two-cols">
+              <div className="form-field">
+                <label>Fecha y hora de inicio</label>
                 <input
-                  type="number"
-                  min="1"
-                  value={it.precio_unitario}
-                  onChange={(e) => updateItem(idx, { precio_unitario: e.target.value })}
+                  type="datetime-local"
+                  value={fechaInicio}
+                  onChange={(e) => setFechaInicio(e.target.value)}
                 />
               </div>
 
-              <div>
-                <strong>Subtotal:</strong> ${Number(it.precio_unitario || 0)}
+              <div className="form-field">
+                <label>Traslado (min)</label>
+                <input
+                  type="number"
+                  min="0"
+                  value={trasladoMin}
+                  onChange={(e) => setTrasladoMin(e.target.value)}
+                />
+              </div>
+            </div>
+
+            <div style={{ marginTop: 6 }}>
+              <h3 style={{ textAlign: "center", margin: "10px 0" }}>Servicios</h3>
+
+              {items.map((it, idx) => (
+                <div key={idx} className="item-card">
+                  <div className="form-field">
+                    <label>Servicio</label>
+                    <select
+                      value={it.id_servicio}
+                      onChange={(e) => onChangeServicio(idx, e.target.value)}
+                    >
+                      <option value="">-- Seleccionar --</option>
+                      {servicios.map((s) => {
+                        const precioLabel =
+                          s.precio_base != null ? s.precio_base : (s.precio != null ? s.precio : "");
+                        return (
+                          <option key={s.id_servicio} value={s.id_servicio}>
+                            {s.nombre} - ${precioLabel}
+                          </option>
+                        );
+                      })}
+                    </select>
+                  </div>
+
+                  <div className="form-row two-cols">
+                    <div className="form-field">
+                      <label>Precio</label>
+                      <input
+                        type="number"
+                        min="1"
+                        value={it.precio_unitario}
+                        onChange={(e) => updateItem(idx, { precio_unitario: e.target.value })}
+                      />
+                    </div>
+
+                    <div className="form-field">
+                      <label>Subtotal</label>
+                       <div className="input-like">
+                          ${Number(it.precio_unitario || 0)}
+                      </div>
+                    </div>
+
+                  </div>
+
+                  {items.length > 1 ? (
+                    <div className="form-actions" style={{ marginTop: 10 }}>
+                      <button type="button" className="btn" onClick={() => removeItem(idx)}>
+                        Quitar item
+                      </button>
+                    </div>
+                  ) : null}
+                </div>
+              ))}
+
+              <div className="form-actions" style={{ marginTop: 10 }}>
+                <button type="button" className="btn" onClick={addItem}>
+                  + Agregar servicio
+                </button>
               </div>
 
-              {items.length > 1 ? (
-                <button type="button" onClick={() => removeItem(idx)}>
-                  Quitar item
-                </button>
-              ) : null}
-
-              <hr />
+              <div className="total-box">
+                <strong>Total:</strong> ${total}
+              </div>
             </div>
-          ))}
 
-          <button type="button" onClick={addItem}>
-            + Agregar servicio
-          </button>
+            <div className="form-actions">
+              <button type="submit" className="btn primary">
+                {submitting ? "Guardando..." : "Registrar atención"}
+              </button>
 
-          <p>
-            <strong>Total:</strong> ${total}
-          </p>
-
-          <button type="submit">{submitting ? "Guardando..." : "Registrar atención"}</button>
-          <button type="button" onClick={() => navigate("/")} style={{ marginLeft: 8 }}>
-            Volver
-          </button>
-        </fieldset>
-      </form>
+              <button type="button" className="btn" onClick={() => navigate("/")}>
+                Volver
+              </button>
+            </div>
+          </fieldset>
+        </form>
+      </div>
     </div>
   );
 }

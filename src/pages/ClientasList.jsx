@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import http from "../api/http";
+import "../App.css";
 
 export default function ClientasList() {
   const [clientas, setClientas] = useState([]);
@@ -8,6 +9,7 @@ export default function ClientasList() {
   const [error, setError] = useState("");
   const [showInactivas, setShowInactivas] = useState(false);
   const [busyIds, setBusyIds] = useState(new Set());
+  const [filtroNombre, setFiltroNombre] = useState("");
 
   const fetchClientas = async () => {
     try {
@@ -33,18 +35,30 @@ export default function ClientasList() {
     return list.filter((c) => Number(c.activo) === 1);
   }, [clientas, showInactivas]);
 
+  const clientasFiltradas = useMemo(() => {
+    const txt = (filtroNombre || "").trim().toLowerCase();
+    if (!txt) return visibleClientas;
+
+    return visibleClientas.filter((c) => {
+      const nombre = (c.nombre || "").toString().toLowerCase();
+      const apellido = (c.apellido || "").toString().toLowerCase();
+      const full = `${nombre} ${apellido}`.trim();
+      return full.includes(txt);
+    });
+  }, [visibleClientas, filtroNombre]);
+
   const toggleActiva = async (c) => {
     const id = c.id_clienta;
     if (!id) return;
 
     setBusyIds((prev) => new Set(prev).add(id));
+
     try {
       const nextActivo = Number(c.activo) === 1 ? 0 : 1;
       await http.put(`/clientas/${id}/activo`, { activo: nextActivo });
-
       await fetchClientas();
     } catch (e) {
-      alert(e?.response?.data?.message || "No se pudo cambiar el estado de la clienta");
+      alert(e?.response?.data?.message || "No se pudo cambiar el estado");
     } finally {
       setBusyIds((prev) => {
         const copy = new Set(prev);
@@ -55,71 +69,114 @@ export default function ClientasList() {
   };
 
   return (
-    <div>
-      <h1>Clientas</h1>
+    <div className="page-center">
+      <div className="list-card">
+        <div className="list-header">
+          <h2 className="list-title">Clientas</h2>
 
-      <div style={{ marginBottom: 8 }}>
-        <Link to="/clientas/nueva">+ Nueva clienta</Link>{" "}
-        <button type="button" onClick={fetchClientas}>Recargar</button>
-      </div>
+          <div className="list-header-actions">
+            <Link to="/clientas/nueva" className="btn primary">
+              Nueva Clienta
+            </Link>
 
-      <label>
-        <input
-          type="checkbox"
-          checked={showInactivas}
-          onChange={(e) => setShowInactivas(e.target.checked)}
-        />{" "}
-        Mostrar clientas inactivas
-      </label>
+            <button type="button" className="btn" onClick={fetchClientas}>
+              Recargar
+            </button>
+          </div>
+        </div>
 
-      <hr />
+        <div className="filters-card">
+          <h3 className="filters-title">Filtros</h3>
 
-      {loading && <p>Cargando...</p>}
-      {error && <p style={{ color: "crimson" }}>{error}</p>}
+          <div className="form-field">
+            <label>Buscar por nombre</label>
+            <input
+              type="text"
+              placeholder="Ej: Andrea"
+              value={filtroNombre}
+              onChange={(e) => setFiltroNombre(e.target.value)}
+            />
+          </div>
 
-      {!loading && !error && visibleClientas.length === 0 && (
-        <p>{showInactivas ? "No hay clientas inactivas." : "No hay clientas activas."}</p>
-      )}
+          <label className="role-check" style={{ marginTop: 10 }}>
+            <input
+              type="checkbox"
+              checked={showInactivas}
+              onChange={(e) => setShowInactivas(e.target.checked)}
+            />
+            Mostrar clientas inactivas
+          </label>
+        </div>
 
-      {!loading && !error && visibleClientas.length > 0 && (
-        <table border="1" cellPadding="6" style={{ borderCollapse: "collapse", width: "100%" }}>
-          <thead>
-            <tr>
-              <th>Nombre</th>
-              <th>Teléfono</th>
-              <th>Email</th>
-              <th>Dirección</th>
-              <th>Acciones</th>
-            </tr>
-          </thead>
-          <tbody>
-            {visibleClientas.map((c) => {
+        {loading && <p>Cargando...</p>}
+        {error && <p className="helper-error">{error}</p>}
+
+        {!loading && !error && clientasFiltradas.length === 0 && (
+          <p style={{ textAlign: "center", marginTop: 10 }}>
+            {filtroNombre.trim()
+              ? "No hay resultados para el filtro."
+              : showInactivas
+              ? "No hay clientas inactivas."
+              : "No hay clientas activas."}
+          </p>
+        )}
+
+        {!loading && !error && clientasFiltradas.length > 0 && (
+          <div className={`cards-grid ${clientasFiltradas.length % 2 === 1 ? "odd" : ""}`}>
+            {clientasFiltradas.map((c) => {
               const id = c.id_clienta;
               const busy = busyIds.has(id);
 
               return (
-                <tr key={id}>
-                  <td>{c.nombre} {c.apellido}</td>
-                  <td>{c.telefono || "-"}</td>
-                  <td>{c.email || "-"}</td>
-                  <td>{c.direccion || "-"}</td>
-                  <td>
-                    <Link to={`/clientas/${id}`}>Ver detalle</Link>{" "}
-                    <Link to={`/clientas/${id}/editar`}>Editar</Link>{" "}
+                <div key={id} className="list-item-card">
+                  <div className="card-top">
+                    <div className="card-title">
+                      {c.nombre} {c.apellido}
+                    </div>
+
+                    <div className="card-sub">
+                      {Number(c.activo) === 1 ? "Activa" : "Inactiva"}
+                    </div>
+                  </div>
+
+                  <div className="card-mid">
+                    <div className="card-line">
+                      <span className="muted">Teléfono:</span> {c.telefono || "-"}
+                    </div>
+
+                    <div className="card-line">
+                      <span className="muted">Email:</span> {c.email || "-"}
+                    </div>
+
+                    <div className="card-line">
+                      <span className="muted">Dirección:</span> {c.direccion || "-"}
+                    </div>
+                  </div>
+
+                  <div className="card-actions">
+                    <Link to={`/clientas/${id}`} className="btn">
+                      Ver Detalle
+                    </Link>
+
+                    <Link to={`/clientas/${id}/editar`} className="btn">
+                      Editar
+                    </Link>
+
                     <button
                       type="button"
-                      onClick={() => toggleActiva(c)}
+                      className="btn"
                       disabled={busy}
+                      onClick={() => toggleActiva(c)}
                     >
                       {Number(c.activo) === 1 ? "Desactivar" : "Activar"}
                     </button>
-                  </td>
-                </tr>
+                  </div>
+                </div>
               );
             })}
-          </tbody>
-        </table>
-      )}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

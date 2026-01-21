@@ -1,6 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext";
+import "../App.css"; 
 
 export default function Dashboard() {
   const { user, logout } = useAuth();
@@ -14,26 +15,11 @@ export default function Dashboard() {
   return (
     <div>
       <header style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <div>
-          <h1>Köra Skin</h1>
-          <p>
-            Sesión iniciada como <strong>{user?.nombre} {user?.apellido}</strong>{" "}
-            ({user?.email})
-          </p>
-          {roles.length > 0 && (
-            <p>
-              Roles: <strong>{roles.join(", ")}</strong>
-            </p>
-          )}
-        </div>
       </header>
-
-      <hr />
-
       <section>
         <h2>Acciones rápidas</h2>
 
-        <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+        <div className="quick-actions">
           {canVentas && (
             <Link to="/ventas/nueva">
               <button type="button">Registrar venta</button>
@@ -58,44 +44,28 @@ export default function Dashboard() {
       <section>
         <h2>Módulos</h2>
 
-        <ul>
-          <li>
-            <Link to="/clientas">Clientas</Link>
-          </li>
-
+        <div className="modules-grid">
+            <Link to="/clientas" className="module-btn">Clientas</Link>
           {(hasRole("vendedora") || hasRole("administradora")) && (
             <>
-              <li>
-                <Link to="/productos">Productos</Link>
-              </li>
-              <li>
-                <Link to="/ventas">Ventas</Link>
-              </li>
+                <Link to="/productos" className="module-btn">Productos</Link>
+                <Link to="/ventas" className="module-btn">Ventas</Link>
             </>
           )}
 
           {(hasRole("masoterapeuta") || hasRole("administradora")) && (
             <>
-              <li>
-                <Link to="/servicios">Servicios</Link>
-              </li>
-              <li>
-                <Link to="/atenciones">Atenciones</Link>
-              </li>
+                <Link to="/servicios" className="module-btn">Servicios</Link>
+                <Link to="/atenciones" className="module-btn">Atenciones</Link>
             </>
           )}
-
           {hasRole("administradora") && (
             <>
-              <li>
-                <Link to="/personal">Personal</Link>
-              </li>
-              <li>
-                <Link to="/roles">Roles</Link>
-              </li>
+                <Link to="/personal" className="module-btn">Personal</Link>
+                <Link to="/roles" className="module-btn">Roles</Link>
             </>
           )}
-        </ul>
+        </div>
       </section>
     </div>
   );

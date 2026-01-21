@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import http from "../api/http";
+import "../App.css";
 
 function formatDateTime(isoString) {
   if (!isoString) return "-";
@@ -44,11 +45,10 @@ export default function VentasList() {
   const [items, setItems] = useState([]);
 
   const [showPagadas, setShowPagadas] = useState(false);
-
   const [qClienta, setQClienta] = useState("");
 
   const [dateFrom, setDateFrom] = useState("");
-  const [dateTo, setDateTo] = useState(""); 
+  const [dateTo, setDateTo] = useState("");
 
   async function fetchAll() {
     setLoading(true);
@@ -109,124 +109,158 @@ export default function VentasList() {
     return arr;
   }, [items, showPagadas, qClienta, dateFrom, dateTo]);
 
-  if (loading) return <div>Cargando...</div>;
-  if (err) return <div style={{ color: "crimson" }}>{err}</div>;
+  if (loading) {
+    return (
+      <div className="page-center">
+        <p>Cargando...</p>
+      </div>
+    );
+  }
+
+  if (err) {
+    return (
+      <div className="page-center">
+        <p className="helper-error">{err}</p>
+      </div>
+    );
+  }
 
   return (
-    <div>
-      <h1>Ventas</h1>
+    <div className="page-center">
+      <div className="list-card">
+        <div className="list-header">
+          <h2 className="list-title">Ventas</h2>
 
-      <div style={{ marginBottom: 10 }}>
-        <Link to="/ventas/nueva">+ Nueva venta</Link> |{" "}
-        <button type="button" onClick={fetchAll}>
-          Recargar
-        </button>
-      </div>
+          <div className="list-header-actions">
+            <Link to="/ventas/nueva" className="btn primary">
+              Nueva Venta
+            </Link>
 
-      <fieldset style={{ marginBottom: 10 }}>
-        <legend>Filtros</legend>
+            <button type="button" className="btn" onClick={fetchAll}>
+              Recargar
+            </button>
+          </div>
+        </div>
 
-        <div style={{ marginBottom: 8 }}>
-          <label>
+        <div className="filters-card">
+          <h3 className="filters-title">Filtros</h3>
+
+          <label className="role-check">
             <input
               type="checkbox"
               checked={showPagadas}
               onChange={(e) => setShowPagadas(e.target.checked)}
-            />{" "}
+            />
             Mostrar solo ventas pagadas
           </label>
-        </div>
 
-        <div style={{ marginBottom: 8 }}>
-          <label>
-            Buscar por clienta:{" "}
+          <div className="form-field" style={{ marginTop: 10 }}>
+            <label>Buscar por clienta</label>
             <input
               type="text"
               value={qClienta}
               onChange={(e) => setQClienta(e.target.value)}
               placeholder="Ej: Andrea"
             />
-          </label>
+          </div>
+
+          <div className="form-row two-cols" style={{ marginTop: 10 }}>
+            <div className="form-field">
+              <label>Desde</label>
+              <input
+                type="date"
+                value={dateFrom}
+                onChange={(e) => setDateFrom(e.target.value)}
+              />
+            </div>
+
+            <div className="form-field">
+              <label>Hasta</label>
+              <input
+                type="date"
+                value={dateTo}
+                onChange={(e) => setDateTo(e.target.value)}
+              />
+            </div>
+          </div>
+
+          <div className="form-actions" style={{ marginTop: 10 }}>
+            <button
+              type="button"
+              className="btn"
+              onClick={() => {
+                setDateFrom("");
+                setDateTo("");
+              }}
+              disabled={!dateFrom && !dateTo}
+            >
+              Limpiar fechas
+            </button>
+          </div>
         </div>
 
-        <div>
-          <label style={{ marginRight: 12 }}>
-            Desde:{" "}
-            <input
-              type="date"
-              value={dateFrom}
-              onChange={(e) => setDateFrom(e.target.value)}
-            />
-          </label>
-
-          <label>
-            Hasta:{" "}
-            <input
-              type="date"
-              value={dateTo}
-              onChange={(e) => setDateTo(e.target.value)}
-            />
-          </label>
-
-          <button
-            type="button"
-            style={{ marginLeft: 12 }}
-            onClick={() => {
-              setDateFrom("");
-              setDateTo("");
-            }}
-          >
-            Limpiar fechas
-          </button>
-        </div>
-      </fieldset>
-
-      {filtered.length === 0 ? (
-        <p>No hay ventas para mostrar.</p>
-      ) : (
-        <table border="1" cellPadding="6" style={{ borderCollapse: "collapse", width: "100%" }}>
-          <thead>
-            <tr>
-              <th>Fecha</th>
-              <th>Clienta</th>
-              <th>Total</th>
-              <th>Estado pago</th>
-              <th>Acciones</th>
-            </tr>
-          </thead>
-
-          <tbody>
+        {filtered.length === 0 ? (
+          <p style={{ textAlign: "center", marginTop: 10 }}>
+            No hay ventas para mostrar.
+          </p>
+        ) : (
+          <div className={`cards-grid ${filtered.length % 2 === 1 ? "odd" : ""}`} style={{ marginTop: 14 }}>
             {filtered.map((v) => {
               const id = v.id_venta ?? v.id ?? v.venta_id;
               const fecha = v.fecha ?? v.fecha_venta ?? v.created_at ?? null;
 
-              const clienta = `${v.clienta_nombre ?? ""} ${v.clienta_apellido ?? ""}`.trim() || "-";
+              const clienta =
+                `${v.clienta_nombre ?? ""} ${v.clienta_apellido ?? ""}`.trim() || "-";
               const total = v.total ?? v.monto_total ?? 0;
               const estadoPago = v.estado_pago ?? "-";
 
+              const pagado = isPagoPagado(estadoPago);
+
               return (
-                <tr key={id ?? `${fecha}-${Math.random()}`}>
-                  <td>{formatDateTime(fecha)}</td>
-                  <td>{clienta}</td>
-                  <td>{moneyCLP(total)}</td>
-                  <td>{estadoPago}</td>
-                  <td>
+                <div key={id ?? `${fecha}-${Math.random()}`} className="list-item-card">
+                  <div className="card-top">
+                    <div className="card-title">{clienta}</div>
+                    <div className="card-sub">{formatDateTime(fecha)}</div>
+                  </div>
+
+                  <div className="card-mid">
+                    <div className="card-line">
+                      <span className="muted">Total:</span>{" "}
+                      <strong>{moneyCLP(total)}</strong>
+                    </div>
+
+                    <div className="chips">
+                      <span className={`chip ${pagado ? "ok" : ""}`}>
+                        {estadoPago}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="card-actions">
                     {id ? (
                       <>
-                        <Link to={`/ventas/${id}`}>Ver detalle</Link> |{" "}
-                        <Link to={`/ventas/${id}/pagos/nuevo`}>Pagar</Link> |{" "}
-                        <Link to={`/ventas/${id}/editar`}>Editar</Link>
+                        <Link to={`/ventas/${id}`} className="btn">
+                          Ver Detalle
+                        </Link>
+
+                        <Link to={`/ventas/${id}/pagos/nuevo`} className="btn">
+                          Pagar
+                        </Link>
+
+                        <Link to={`/ventas/${id}/editar`} className="btn">
+                          Editar
+                        </Link>
                       </>
                     ) : (
                       "-"
                     )}
-                  </td>
-                </tr>
+                  </div>
+                </div>
               );
             })}
-          </tbody>
-        </table>
-      )}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import http from "../api/http";
+import "../App.css";
 
 export default function PersonalForm() {
   const navigate = useNavigate();
@@ -18,11 +19,8 @@ export default function PersonalForm() {
   });
 
   const [rolesSelected, setRolesSelected] = useState([]);
-
   const [error, setError] = useState("");
-
-  const [created, setCreated] = useState(null); 
- 
+  const [created, setCreated] = useState(null);
 
   useEffect(() => {
     let mounted = true;
@@ -39,9 +37,7 @@ export default function PersonalForm() {
       }
     })();
 
-    return () => {
-      mounted = false;
-    };
+    return () => (mounted = false);
   }, []);
 
   const rolesById = useMemo(() => {
@@ -57,10 +53,9 @@ export default function PersonalForm() {
 
   function toggleRole(idRol) {
     const id = Number(idRol);
-    setRolesSelected((prev) => {
-      if (prev.includes(id)) return prev.filter((x) => x !== id);
-      return [...prev, id];
-    });
+    setRolesSelected((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
+    );
   }
 
   function validate() {
@@ -72,10 +67,9 @@ export default function PersonalForm() {
     if (!form.email.trim()) missing.push("email");
     if (rolesSelected.length === 0) missing.push("roles");
 
-    if (missing.length) {
-      return `Faltan campos obligatorios: ${missing.join(", ")}`;
-    }
-    return "";
+    return missing.length
+      ? `Faltan campos obligatorios: ${missing.join(", ")}`
+      : "";
   }
 
   async function onSubmit(e) {
@@ -92,7 +86,7 @@ export default function PersonalForm() {
       nombre: form.nombre.trim(),
       apellido: form.apellido.trim(),
       rut: form.rut.trim(),
-      direccion: form.direccion.trim() ? form.direccion.trim() : null,
+      direccion: form.direccion.trim() || null,
       telefono: form.telefono.trim(),
       email: form.email.trim(),
       roles: rolesSelected,
@@ -123,7 +117,7 @@ export default function PersonalForm() {
       await navigator.clipboard.writeText(created.password_temporal);
       alert("Clave temporal copiada.");
     } catch {
-      alert("No se pudo copiar automáticamente. Cópiala manualmente.");
+      alert("No se pudo copiar automáticamente.");
     }
   }
 
@@ -141,138 +135,152 @@ export default function PersonalForm() {
     setRolesSelected([]);
   }
 
-  if (loading) return <div>Cargando...</div>;
+  if (loading) {
+    return (
+      <div className="page-center">
+        <p>Cargando...</p>
+      </div>
+    );
+  }
 
   return (
-    <div>
-      <h1>Nuevo personal</h1>
+    <div className="page-center">
+      <div className="form-card">
+        <h2 className="form-title">Nuevo personal</h2>
 
-      {error ? <p style={{ color: "red" }}>{error}</p> : null}
+        {error && <p className="helper-error">{error}</p>}
 
-      {created ? (
-        <div style={{ border: "1px solid #ccc", padding: 12, marginBottom: 12 }}>
-          <h3>Personal creado</h3>
-          <p>
-            <strong>ID:</strong> {created.id_personal ?? "-"}
-            <br />
-            <strong>Email:</strong> {created.email}
-            <br />
-            <strong>Clave temporal:</strong>{" "}
-            <code>{created.password_temporal ?? "(no recibida)"}</code>
-          </p>
+        {created && (
+          <div className="created-box">
+            <h3>Personal creado</h3>
 
-          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-            <button type="button" onClick={copyTempPassword} disabled={!created.password_temporal}>
-              Copiar clave temporal
-            </button>
-            <button type="button" onClick={() => navigate("/personal")}>
-              Ir al listado
-            </button>
-            <button type="button" onClick={resetForm}>
-              Crear otro personal
-            </button>
-          </div>
-
-          <p style={{ marginTop: 10 }}>
-            Importante: guarda esta clave; después el usuario deberá cambiarla al iniciar sesión.
-          </p>
-        </div>
-      ) : null}
-
-      <form onSubmit={onSubmit}>
-        <fieldset disabled={!!created}>
-          <legend>Datos</legend>
-
-          <div>
-            <label>
-              Nombre
+            <p>
+              <strong>ID:</strong> {created.id_personal ?? "-"}
               <br />
-              <input name="nombre" value={form.nombre} onChange={onChange} required />
-            </label>
-          </div>
-
-          <div>
-            <label>
-              Apellido
+              <strong>Email:</strong> {created.email}
               <br />
-              <input name="apellido" value={form.apellido} onChange={onChange} required />
-            </label>
-          </div>
+              <strong>Clave temporal:</strong>{" "}
+              <code>{created.password_temporal ?? "(no recibida)"}</code>
+            </p>
 
-          <div>
-            <label>
-              RUT
-              <br />
-              <input name="rut" value={form.rut} onChange={onChange} required />
-            </label>
-          </div>
+            <div className="form-actions">
+              <button
+                type="button"
+                className="btn"
+                onClick={copyTempPassword}
+                disabled={!created.password_temporal}
+              >
+                Copiar clave
+              </button>
 
-          <div>
-            <label>
-              Dirección
-              <br />
+              <button
+                type="button"
+                className="btn"
+                onClick={() => navigate("/personal")}
+              >
+                Ir al listado
+              </button>
+
+              <button type="button" className="btn" onClick={resetForm}>
+                Crear otro
+              </button>
+            </div>
+
+            <p style={{ marginTop: 10 }}>
+              El usuario deberá cambiar esta clave al iniciar sesión.
+            </p>
+          </div>
+        )}
+
+        <form onSubmit={onSubmit} className="form">
+          <fieldset disabled={!!created} style={{ border: "none", padding: 0 }}>
+            <h3 style={{ textAlign: "center" }}>Datos personales</h3>
+
+            <div className="form-row two-cols">
+              <div className="form-field">
+                <label>Nombre</label>
+                <input name="nombre" value={form.nombre} onChange={onChange} />
+              </div>
+
+              <div className="form-field">
+                <label>Apellido</label>
+                <input name="apellido" value={form.apellido} onChange={onChange} />
+              </div>
+            </div>
+
+            <div className="form-field">
+              <label>RUT</label>
+              <input name="rut" value={form.rut} onChange={onChange} />
+            </div>
+
+            <div className="form-field">
+              <label>Dirección</label>
               <input name="direccion" value={form.direccion} onChange={onChange} />
-            </label>
-          </div>
+            </div>
 
-          <div>
-            <label>
-              Teléfono
-              <br />
-              <input name="telefono" value={form.telefono} onChange={onChange} required />
-            </label>
-          </div>
+            <div className="form-row two-cols">
+              <div className="form-field">
+                <label>Teléfono</label>
+                <input name="telefono" value={form.telefono} onChange={onChange} />
+              </div>
 
-          <div>
-            <label>
-              Email
-              <br />
-              <input
-                name="email"
-                value={form.email}
-                onChange={onChange}
-                type="email"
-                required
-              />
-            </label>
-          </div>
-        </fieldset>
+              <div className="form-field">
+                <label>Email</label>
+                <input
+                  type="email"
+                  name="email"
+                  value={form.email}
+                  onChange={onChange}
+                />
+              </div>
+            </div>
 
-        <fieldset disabled={!!created}>
-          <legend>Roles (puedes seleccionar más de uno)</legend>
+            <h3 style={{ textAlign: "center", marginTop: 12 }}>
+              Roles del personal
+            </h3>
 
-          {roles.length === 0 ? (
-            <p>No hay roles cargados.</p>
-          ) : (
-            roles.map((r) => {
-              const id = Number(r.id_rol);
-              const checked = rolesSelected.includes(id);
+            <div className="roles-grid">
+              {roles.length === 0 ? (
+                <p>No hay roles cargados.</p>
+              ) : (
+                roles.map((r) => {
+                  const id = Number(r.id_rol);
+                  const checked = rolesSelected.includes(id);
 
-              return (
-                <div key={id}>
-                  <label>
-                    <input
-                      type="checkbox"
-                      checked={checked}
-                      onChange={() => toggleRole(id)}
-                    />{" "}
-                    {rolesById.get(id)?.nombre ?? r.nombre} (id: {id})
-                  </label>
-                </div>
-              );
-            })
-          )}
-        </fieldset>
+                  return (
+                    <label key={id} className="role-check">
+                      <input
+                        type="checkbox"
+                        checked={checked}
+                        onChange={() => toggleRole(id)}
+                      />
+                      {rolesById.get(id)?.nombre ?? r.nombre}
+                    </label>
+                  );
+                })
+              )}
+            </div>
 
-        <div style={{ marginTop: 10 }}>
-          <button type="submit" disabled={!!created}>
-            Registrar personal
-          </button>{" "}
-          <button type="button" onClick={() => navigate(-1)}>
-            Volver
-          </button>
-        </div>
-      </form>
+            <div className="form-actions">
+              <button
+                type="submit"
+                className="btn primary"
+                disabled={!!created}
+              >
+                Registrar personal
+              </button>
+
+              <button
+                type="button"
+                className="btn"
+                onClick={() => navigate(-1)}
+              >
+                Volver
+              </button>
+            </div>
+          </fieldset>
+        </form>
+      </div>
     </div>
   );
 }

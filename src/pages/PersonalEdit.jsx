@@ -1,16 +1,16 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import http from "../api/http";
+import "../App.css";
 
 function normalizeRolesFromApi(personalData) {
-
   const roles = personalData?.roles;
   if (!roles) return [];
 
   if (Array.isArray(roles)) {
     if (roles.length === 0) return [];
-    const first = roles[0];
 
+    const first = roles[0];
     if (typeof first === "number") return roles.map(Number);
     if (typeof first === "string") return [];
 
@@ -55,8 +55,7 @@ export default function PersonalEdit() {
     const n = Number(idRol);
     setRolesSeleccionados((prev) => {
       const s = new Set(prev.map(Number));
-      if (s.has(n)) s.delete(n);
-      else s.add(n);
+      s.has(n) ? s.delete(n) : s.add(n);
       return Array.from(s);
     });
   }
@@ -76,12 +75,7 @@ export default function PersonalEdit() {
       setRolesCatalogo(rolesArr);
 
       const p = resPersonal.data?.personal ?? resPersonal.data;
-
-      if (!p) {
-        setError("No se encontró el personal.");
-        setLoading(false);
-        return;
-      }
+      if (!p) throw new Error("No se encontró el personal");
 
       setNombre(p.nombre ?? "");
       setApellido(p.apellido ?? "");
@@ -92,26 +86,28 @@ export default function PersonalEdit() {
 
       let idsRoles = normalizeRolesFromApi(p);
 
-      if ((!idsRoles || idsRoles.length === 0) && Array.isArray(resPersonal.data?.roles)) {
+      if (
+        (!idsRoles || idsRoles.length === 0) &&
+        Array.isArray(resPersonal.data?.roles)
+      ) {
         idsRoles = resPersonal.data.roles
           .map((r) => r?.id_rol)
-          .filter((x) => x !== undefined && x !== null)
+          .filter(Boolean)
           .map(Number);
       }
 
       if (
         (!idsRoles || idsRoles.length === 0) &&
         Array.isArray(p.roles) &&
-        p.roles.length > 0 &&
-        typeof p.roles[0] === "string" &&
-        rolesArr.length > 0
+        typeof p.roles[0] === "string"
       ) {
         const mapByName = new Map(
-          rolesArr.map((r) => [String(r.nombre).toLowerCase(), Number(r.id_rol)])
+          rolesArr.map((r) => [r.nombre.toLowerCase(), Number(r.id_rol)])
         );
+
         idsRoles = p.roles
-          .map((name) => mapByName.get(String(name).toLowerCase()))
-          .filter((x) => x !== undefined);
+          .map((name) => mapByName.get(name.toLowerCase()))
+          .filter(Boolean);
       }
 
       setRolesSeleccionados(idsRoles || []);
@@ -135,10 +131,11 @@ export default function PersonalEdit() {
     if (!direccion.trim()) missing.push("direccion");
     if (!telefono.trim()) missing.push("telefono");
     if (!email.trim()) missing.push("email");
+    if (!rolesSeleccionados.length) missing.push("roles");
 
-    if (missing.length) return `Faltan campos obligatorios: ${missing.join(", ")}`;
-    if (!rolesSeleccionados.length) return "Debes asignar al menos 1 rol (roles)";
-    return "";
+    return missing.length
+      ? `Faltan campos obligatorios: ${missing.join(", ")}`
+      : "";
   }
 
   async function onSubmit(e) {
@@ -147,123 +144,152 @@ export default function PersonalEdit() {
     setOkMsg("");
 
     const msg = validate();
-    if (msg) {
-      setError(msg);
-      return;
-    }
-
-    const payloadPersonal = {
-      nombre: nombre.trim(),
-      apellido: apellido.trim(),
-      rut: rut.trim(),
-      direccion: direccion.trim(),
-      telefono: telefono.trim(),
-      email: email.trim(),
-    };
-
-    const payloadRoles = {
-      roles: rolesSeleccionados.map(Number),
-    };
+    if (msg) return setError(msg);
 
     try {
       setSaving(true);
 
-      await http.put(`/personal/${id}`, payloadPersonal);
+      await http.put(`/personal/${id}`, {
+        nombre: nombre.trim(),
+        apellido: apellido.trim(),
+        rut: rut.trim(),
+        direccion: direccion.trim(),
+        telefono: telefono.trim(),
+        email: email.trim(),
+      });
 
-      await http.put(`/personal/${id}/roles`, payloadRoles);
+      await http.put(`/personal/${id}/roles`, {
+        roles: rolesSeleccionados.map(Number),
+      });
 
       setOkMsg("Personal actualizado");
       navigate(`/personal/${id}`);
     } catch (e2) {
-      console.error(e2);
-      setError(e2?.response?.data?.message || "No se pudo actualizar el personal.");
+      setError(
+        e2?.response?.data?.message ||
+          "No se pudo actualizar el personal."
+      );
     } finally {
       setSaving(false);
     }
   }
 
-  if (loading) return <div>Cargando...</div>;
+  if (loading) {
+    return (
+      <div className="page-center">
+        <p>Cargando...</p>
+      </div>
+    );
+  }
 
   return (
-    <div>
-      <h1>Editar personal</h1>
+    <div className="page-center">
+      <div className="form-card">
+        <h2 className="form-title">Editar personal</h2>
 
-      <div style={{ marginBottom: 10 }}>
-        <Link to={`/personal/${id}`}>Volver al detalle</Link> |{" "}
-        <button type="button" onClick={loadAll} disabled={saving}>
-          Recargar
-        </button>
-      </div>
+        <div className="form-actions" style={{ marginBottom: 18 }}>
+          <Link to={`/personal/${id}`} className="btn">
+            Volver al detalle
+          </Link>
 
-      {error ? <p style={{ color: "crimson" }}>{error}</p> : null}
-      {okMsg ? <p style={{ color: "green" }}>{okMsg}</p> : null}
+          <button
+            type="button"
+            className="btn"
+            onClick={loadAll}
+            disabled={saving}
+          >
+            Recargar
+          </button>
+        </div>
 
-      <form onSubmit={onSubmit}>
-        <fieldset disabled={saving}>
-          <div>
-            <label>Nombre</label>
-            <br />
-            <input value={nombre} onChange={(e) => setNombre(e.target.value)} />
-          </div>
+        {error && <p className="helper-error">{error}</p>}
+        {okMsg && (
+          <p style={{ textAlign: "center", color: "green", fontWeight: 600 }}>
+            {okMsg}
+          </p>
+        )}
 
-          <div>
-            <label>Apellido</label>
-            <br />
-            <input value={apellido} onChange={(e) => setApellido(e.target.value)} />
-          </div>
+        <form onSubmit={onSubmit} className="form">
+          <fieldset disabled={saving} style={{ border: "none", padding: 0 }}>
+            <h3 style={{ textAlign: "center" }}>Datos personales</h3>
 
-          <div>
-            <label>RUT</label>
-            <br />
-            <input value={rut} onChange={(e) => setRut(e.target.value)} />
-          </div>
+            <div className="form-row two-cols">
+              <div className="form-field">
+                <label>Nombre</label>
+                <input value={nombre} onChange={(e) => setNombre(e.target.value)} />
+              </div>
 
-          <div>
-            <label>Dirección</label>
-            <br />
-            <input value={direccion} onChange={(e) => setDireccion(e.target.value)} />
-          </div>
+              <div className="form-field">
+                <label>Apellido</label>
+                <input
+                  value={apellido}
+                  onChange={(e) => setApellido(e.target.value)}
+                />
+              </div>
+            </div>
 
-          <div>
-            <label>Teléfono</label>
-            <br />
-            <input value={telefono} onChange={(e) => setTelefono(e.target.value)} />
-          </div>
+            <div className="form-field">
+              <label>RUT</label>
+              <input value={rut} onChange={(e) => setRut(e.target.value)} />
+            </div>
 
-          <div>
-            <label>Email</label>
-            <br />
-            <input value={email} onChange={(e) => setEmail(e.target.value)} />
-          </div>
+            <div className="form-field">
+              <label>Dirección</label>
+              <input
+                value={direccion}
+                onChange={(e) => setDireccion(e.target.value)}
+              />
+            </div>
 
-          <hr />
+            <div className="form-row two-cols">
+              <div className="form-field">
+                <label>Teléfono</label>
+                <input
+                  value={telefono}
+                  onChange={(e) => setTelefono(e.target.value)}
+                />
+              </div>
 
-          <div>
-            <strong>Roles</strong>
-            <div style={{ marginTop: 6 }}>
+              <div className="form-field">
+                <label>Email</label>
+                <input value={email} onChange={(e) => setEmail(e.target.value)} />
+              </div>
+            </div>
+
+            <h3 style={{ textAlign: "center", marginTop: 12 }}>
+              Roles asignados
+            </h3>
+
+            <div className="roles-grid">
               {rolesCatalogo.map((r) => (
-                <div key={r.id_rol}>
-                  <label>
-                    <input
-                      type="checkbox"
-                      checked={rolesSeleccionadosSet.has(Number(r.id_rol))}
-                      onChange={() => toggleRol(r.id_rol)}
-                    />{" "}
-                    {r.nombre}
-                  </label>
-                </div>
+                <label key={r.id_rol} className="role-check">
+                  <input
+                    type="checkbox"
+                    checked={rolesSeleccionadosSet.has(Number(r.id_rol))}
+                    onChange={() => toggleRol(r.id_rol)}
+                  />
+                  {r.nombre}
+                </label>
               ))}
             </div>
-          </div>
 
-          <div style={{ marginTop: 10 }}>
-            <button type="submit">{saving ? "Guardando..." : "Guardar cambios"}</button>{" "}
-            <button type="button" onClick={() => navigate(-1)} disabled={saving}>
-              Cancelar
-            </button>
-          </div>
-        </fieldset>
-      </form>
+            <div className="form-actions">
+              <button type="submit" className="btn primary" disabled={saving}>
+                {saving ? "Guardando..." : "Guardar cambios"}
+              </button>
+
+              <button
+                type="button"
+                className="btn"
+                onClick={() => navigate(-1)}
+                disabled={saving}
+              >
+                Cancelar
+              </button>
+            </div>
+          </fieldset>
+        </form>
+      </div>
     </div>
   );
 }

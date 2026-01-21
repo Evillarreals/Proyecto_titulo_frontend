@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import http from "../api/http";
+import "../App.css";
 
 export default function ClientaDetail() {
   const { id } = useParams();
@@ -39,58 +40,107 @@ export default function ClientaDetail() {
     return `${clienta.nombre ?? ""} ${clienta.apellido ?? ""}`.trim();
   }, [clienta]);
 
-  if (loading) return <div>Cargando...</div>;
-  if (err) return <div style={{ color: "crimson" }}>{err}</div>;
-  if (!clienta) return <div>No existe la clienta.</div>;
+  if (loading) {
+    return (
+      <div className="page-center">
+        <p>Cargando...</p>
+      </div>
+    );
+  }
+
+  if (err) {
+    return (
+      <div className="page-center">
+        <p className="helper-error">{err}</p>
+      </div>
+    );
+  }
+
+  if (!clienta) {
+    return (
+      <div className="page-center">
+        <div className="form-card">
+          <h2 className="form-title">Detalle clienta</h2>
+          <p style={{ textAlign: "center" }}>No existe la clienta.</p>
+          <div className="form-actions">
+            <button type="button" className="btn" onClick={() => navigate(-1)}>
+              Volver
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  const activaTxt =
+    "activo" in clienta ? (Number(clienta.activo) === 1 ? "Activa" : "Inactiva") : null;
 
   return (
-    <div>
-      <h1>Detalle Clienta</h1>
+    <div className="page-center">
+      <div className="list-card">
+        <div className="list-header">
+          <h2 className="list-title">Detalle clienta</h2>
 
-      <div style={{ marginBottom: 12 }}>
-        <button type="button" onClick={() => navigate(-1)}>
-          Volver
-        </button>{" "}
-        | <Link to="/clientas">Ir al listado</Link>{" "}
+          <div className="list-header-actions">
+            <button type="button" className="btn" onClick={() => navigate(-1)}>
+              Volver
+            </button>
+
+            <Link to="/clientas" className="btn">
+              Ir al listado
+            </Link>
+
+            <Link to={`/clientas/${id}/editar`} className="btn">
+              Editar
+            </Link>
+
+            <button type="button" className="btn" onClick={fetchDetail}>
+              Recargar
+            </button>
+          </div>
+        </div>
+
+        <div className="resume-box" style={{ marginTop: 14 }}>
+          <div className="card-top" style={{ marginBottom: 10 }}>
+            <div className="card-title">{nombreCompleto || "-"}</div>
+            {activaTxt ? (
+              <div className="card-sub">
+                <span className={`chip ${activaTxt === "Activa" ? "ok" : "danger"}`}>
+                  {activaTxt}
+                </span>
+              </div>
+            ) : null}
+          </div>
+
+          <div className="card-mid" style={{ justifyContent: "flex-start" }}>
+            <div className="card-line">
+              <span className="muted">Email:</span> {clienta.email || "-"}
+            </div>
+
+            <div className="card-line">
+              <span className="muted">Teléfono:</span> {clienta.telefono || "-"}
+            </div>
+
+            <div className="card-line">
+              <span className="muted">Dirección:</span> {clienta.direccion || "-"}
+            </div>
+          </div>
+        </div>
+
+        <div className="filters-card" style={{ marginTop: 14 }}>
+          <h3 className="filters-title">Acciones rápidas</h3>
+
+          <div className="form-actions" style={{ justifyContent: "center" }}>
+            <Link to="/ventas/nueva" className="btn primary">
+              Registrar venta
+            </Link>
+
+            <Link to="/atenciones/nueva" className="btn primary">
+              Agendar atención
+            </Link>
+          </div>
+        </div>
       </div>
-
-      <hr />
-
-      <h2>Información general</h2>
-
-      <p>
-        <strong>Nombre:</strong> {nombreCompleto || "-"}
-      </p>
-
-      <p>
-        <strong>Email:</strong> {clienta.email || "-"}
-      </p>
-
-      <p>
-        <strong>Teléfono:</strong> {clienta.telefono || "-"}
-      </p>
-
-      <p>
-        <strong>Dirección:</strong> {clienta.direccion || "-"}
-      </p>
-
-      {"activo" in clienta && (
-        <p>
-          <strong>Activo:</strong> {Number(clienta.activo) === 1 ? "sí" : "no"}
-        </p>
-      )}
-
-      <hr />
-
-      <h2>Acciones rápidas</h2>
-      <ul>
-        <li>
-          <Link to="/ventas/nueva">Registrar venta</Link>
-        </li>
-        <li>
-          <Link to="/atenciones/nueva">Agendar atención</Link>
-        </li>
-      </ul>
     </div>
   );
 }
