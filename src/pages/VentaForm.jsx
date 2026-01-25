@@ -25,6 +25,15 @@ export default function VentaForm() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
 
+  const isActivo = (x) => x?.activo === 1 || x?.activo === true || x?.activo === "1";
+  const clientasActivas = useMemo(() => {
+    return (Array.isArray(clientas) ? clientas : []).filter(isActivo);
+  }, [clientas]);
+
+  const productosActivos = useMemo(() => {
+    return (Array.isArray(productos) ? productos : []).filter(isActivo);
+  }, [productos]);
+
   useEffect(() => {
     let alive = true;
 
@@ -91,7 +100,7 @@ export default function VentaForm() {
   }, []);
 
   function getProductoById(id) {
-    return productos.find((p) => String(p.id_producto) === String(id));
+    return productosActivos.find((p) => String(p.id_producto) === String(id));
   }
 
   function addItem() {
@@ -128,9 +137,18 @@ export default function VentaForm() {
     if (!idVendedora) return "Debes seleccionar una vendedora.";
     if (!items.length) return "Debes agregar al menos 1 producto.";
 
+    const clientaOk = clientasActivas.some((c) => String(c.id_clienta) === String(idClienta));
+    if (!clientaOk) return "La clienta seleccionada está inactiva o no disponible.";
+
     for (let i = 0; i < items.length; i++) {
       const it = items[i];
       if (!it.id_producto) return `Item ${i + 1}: falta producto.`;
+
+      const prodOk = productosActivos.some(
+        (p) => String(p.id_producto) === String(it.id_producto)
+      );
+      if (!prodOk) return `Item ${i + 1}: el producto seleccionado está inactivo o no disponible.`;
+
       if (!Number.isFinite(Number(it.cantidad)) || Number(it.cantidad) <= 0)
         return `Item ${i + 1}: cantidad inválida.`;
       if (!Number.isFinite(Number(it.precio_unitario)) || Number(it.precio_unitario) <= 0)
@@ -220,7 +238,7 @@ export default function VentaForm() {
               <label>Clienta</label>
               <select value={idClienta} onChange={(e) => setIdClienta(e.target.value)}>
                 <option value="">-- Seleccionar --</option>
-                {clientas.map((c) => (
+                {clientasActivas.map((c) => (
                   <option key={c.id_clienta} value={c.id_clienta}>
                     {c.nombre} {c.apellido} (#{c.id_clienta})
                   </option>
@@ -254,7 +272,7 @@ export default function VentaForm() {
                       onChange={(e) => onChangeProducto(idx, e.target.value)}
                     >
                       <option value="">-- Seleccionar --</option>
-                      {productos.map((p) => (
+                      {productosActivos.map((p) => (
                         <option key={p.id_producto} value={p.id_producto}>
                           {p.nombre} ({p.marca}) - ${p.precio} | stock: {p.stock}
                         </option>

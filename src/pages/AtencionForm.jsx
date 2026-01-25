@@ -26,6 +26,16 @@ export default function AtencionForm() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
 
+  const isActivo = (x) => x?.activo === 1 || x?.activo === true || x?.activo === "1";
+
+  const clientasActivas = useMemo(() => {
+    return (Array.isArray(clientas) ? clientas : []).filter(isActivo);
+  }, [clientas]);
+
+  const serviciosActivos = useMemo(() => {
+    return (Array.isArray(servicios) ? servicios : []).filter(isActivo);
+  }, [servicios]);
+
   useEffect(() => {
     let alive = true;
 
@@ -95,7 +105,7 @@ export default function AtencionForm() {
   }, []);
 
   function getServicioById(id) {
-    return servicios.find((s) => String(s.id_servicio) === String(id));
+    return serviciosActivos.find((s) => String(s.id_servicio) === String(id));
   }
 
   function addItem() {
@@ -143,12 +153,21 @@ export default function AtencionForm() {
     if (!idMasoterapeuta) return "Debes seleccionar una masoterapeuta.";
     if (!items.length) return "Debes agregar al menos 1 servicio.";
 
+    const clientaOk = clientasActivas.some((c) => String(c.id_clienta) === String(idClienta));
+    if (!clientaOk) return "La clienta seleccionada está inactiva o no disponible.";
+
     const t = Number(trasladoMin);
     if (!Number.isFinite(t) || t < 0) return "Traslado (min) inválido.";
 
     for (let i = 0; i < items.length; i++) {
       const it = items[i];
       if (!it.id_servicio) return `Item ${i + 1}: falta servicio.`;
+
+      const servOk = serviciosActivos.some(
+        (s) => String(s.id_servicio) === String(it.id_servicio)
+      );
+      if (!servOk) return `Item ${i + 1}: el servicio seleccionado está inactivo o no disponible.`;
+
       const n = parseFloat(String(it.precio_unitario ?? "").replace(",", "."));
       if (!Number.isFinite(n) || n <= 0) return `Item ${i + 1}: precio inválido.`;
     }
@@ -217,7 +236,7 @@ export default function AtencionForm() {
               <label>Clienta</label>
               <select value={idClienta} onChange={(e) => setIdClienta(e.target.value)}>
                 <option value="">-- Seleccionar --</option>
-                {clientas.map((c) => (
+                {clientasActivas.map((c) => (
                   <option key={c.id_clienta} value={c.id_clienta}>
                     {c.nombre} {c.apellido} (#{c.id_clienta})
                   </option>
@@ -273,7 +292,7 @@ export default function AtencionForm() {
                       onChange={(e) => onChangeServicio(idx, e.target.value)}
                     >
                       <option value="">-- Seleccionar --</option>
-                      {servicios.map((s) => {
+                      {serviciosActivos.map((s) => {
                         const precioLabel =
                           s.precio_base != null ? s.precio_base : (s.precio != null ? s.precio : "");
                         return (
@@ -298,11 +317,8 @@ export default function AtencionForm() {
 
                     <div className="form-field">
                       <label>Subtotal</label>
-                       <div className="input-like">
-                          ${Number(it.precio_unitario || 0)}
-                      </div>
+                      <div className="input-like">${Number(it.precio_unitario || 0)}</div>
                     </div>
-
                   </div>
 
                   {items.length > 1 ? (

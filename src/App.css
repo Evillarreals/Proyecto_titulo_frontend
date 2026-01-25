@@ -78,16 +78,29 @@ h2 {
 }
 
 .quick-actions button {
-  padding: 10px 18px;
-  border-radius: 6px;
+  background: #ffffff;
   border: 1px solid #aaa;
+  border-radius: 10px;
+  padding: 12px 22px;
+  font-weight: 600;
   cursor: pointer;
-  background: #fff;
-  font-weight: 500;
+  box-shadow: 0 3px 0 #bbb;
+
+  transition: 
+    transform 0.1s ease,
+    box-shadow 0.1s ease,
+    background 0.15s ease;
 }
 
 .quick-actions button:hover {
   background: #f5f5f5;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 0 #aaa;
+}
+
+.quick-actions button:active {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 #aaa;
 }
 
 .modules-grid {
@@ -105,22 +118,32 @@ h2 {
   justify-content: center;
 
   height: 80px;
-  border-radius: 14px;
-  border: 1px solid #ccc;
-
+  border-radius: 16px;
+  border: 1px solid #bbb;
   background: #ffffff;
+
+  font-size: 16px;
+  font-weight: 700;
   text-decoration: none;
   color: #000;
 
-  font-size: 16px;
-  font-weight: 600;
-  text-align: center;
+  box-shadow: 0 4px 0 #cfcfcf;
 
-  transition: 0.15s ease;
+  transition: 
+    transform 0.12s ease,
+    box-shadow 0.12s ease,
+    background 0.15s ease;
 }
 
 .module-btn:hover {
-  background: #f3f3f3;
+  background: #f6f6f6;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 0 #bdbdbd;
+}
+
+.module-btn:active {
+  transform: translateY(2px);
+  box-shadow: 0 2px 0 #bdbdbd;
 }
 
 .modules-grid > a.module-btn:last-child:nth-child(odd) {
@@ -409,6 +432,7 @@ h2 {
 
 .filters-card {
   margin-top: 14px;
+  margin-bottom: 24px;
   border: 1px solid #ddd;
   border-radius: 14px;
   padding: 14px;
@@ -528,9 +552,6 @@ h2 {
   }
 }
 
-
-
-
 a.btn,
 a.btn:visited,
 a.btn:hover,
@@ -545,4 +566,167 @@ a.btn:hover {
 
 a.btn:active {
   background: #eaeaea;
+}
+
+button,
+input[type="button"],
+input[type="submit"],
+a.button-link {
+  -webkit-appearance: none;
+  appearance: none;
+  border: none;
+  background: none;
+  font-family: inherit;
+  color: inherit;
+}
+
+a,
+a:visited,
+a:hover,
+a:active {
+  color: #000;
+  text-decoration: none;
+}
+
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+.btn,
+button {
+  background: #ffffff;
+  border: 1px solid #aaa;
+  border-radius: 10px;
+  padding: 10px 18px;
+  font-weight: 600;
+  font-size: 15px;
+  color: #000;
+  cursor: pointer;
+
+  box-shadow: 0 3px 0 #bbb;
+
+  transition:
+    background 0.15s ease,
+    transform 0.1s ease,
+    box-shadow 0.1s ease;
+}
+
+.btn:hover,
+button:hover {
+  background: #f4f4f4;
+}
+
+.btn:active,
+button:active {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 #aaa;
+}
+.btn-link,
+.btn-link:visited,
+.btn-link:hover,
+.btn-link:active {
+  color: #000;
+  text-decoration: none;
+}
+
+.btn-link,
+.btn-logout {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  background: #fff;
+  border: 1px solid #aaa;
+  border-radius: 10px;
+  padding: 10px 18px;
+
+  font-weight: 600;
+  font-size: 15px;
+
+  cursor: pointer;
+  box-shadow: 0 3px 0 #bbb;
+
+  transition: background 0.15s ease, transform 0.1s ease, box-shadow 0.1s ease;
+}
+
+.btn-link:hover,
+.btn-logout:hover {
+  background: #f4f4f4;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 0 #aaa;
+}
+
+.btn-link:active,
+.btn-logout:active {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 #aaa;
+}
+
+.btn-link {
+  -webkit-appearance: none;
+  appearance: none;
+  -webkit-tap-highlight-color: transparent;
+}
+.filters-box {
+  margin-bottom: 24px;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+.card input,
+.card select,
+.card textarea,
+.filters-card input,
+.filters-card select,
+.filters-card textarea,
+.form-card input,
+.form-card select,
+.form-card textarea {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+}
+
+input[type="date"],
+input[type="datetime-local"],
+input[type="time"] {
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+@media (max-width: 480px) {
+  .card,
+  .filters-card,
+  .form-card {
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+}
+
+.card input:not([type="checkbox"]):not([type="radio"]),
+.card select,
+.card textarea,
+.filters-card input:not([type="checkbox"]):not([type="radio"]),
+.filters-card select,
+.filters-card textarea,
+.form-card input:not([type="checkbox"]):not([type="radio"]),
+.form-card select,
+.form-card textarea {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+}
+
+.card input[type="checkbox"],
+.card input[type="radio"],
+.filters-card input[type="checkbox"],
+.filters-card input[type="radio"],
+.form-card input[type="checkbox"],
+.form-card input[type="radio"] {
+  width: auto !important;
+  max-width: none !important;
+  min-width: auto !important;
+  display: inline-block;
 }
