@@ -62,7 +62,6 @@ export default function Dashboard() {
           {hasRole("administradora") && (
             <>
                 <Link to="/personal" className="module-btn">Personal</Link>
-                <Link to="/roles" className="module-btn">Roles</Link>
             </>
           )}
         </div>
