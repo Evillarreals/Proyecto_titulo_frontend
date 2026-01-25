@@ -730,3 +730,47 @@ input[type="time"] {
   min-width: auto !important;
   display: inline-block;
 }
+
+html, body {
+  overflow-x: hidden;
+}
+
+.app-header {
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.header-user {
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  row-gap: 10px;
+  column-gap: 10px;
+  min-width: 0;
+}
+
+.user-email {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 45vw;
+}
+
+@media (max-width: 480px) {
+  .header-user {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .user-email {
+    max-width: 90vw;
+    text-align: center;
+  }
+
+  .btn-link,
+  .btn-logout {
+    flex: 1 1 160px;
+    max-width: 220px;
+    text-align: center;
+  }
+}

@@ -64,9 +64,60 @@ export default function AtencionesEdit() {
 
   const [items, setItems] = useState([{ id_servicio: "", precio_aplicado: "" }]);
 
+  const isActivo = (x) => x?.activo === 1 || x?.activo === true || x?.activo === "1";
+
   const total = useMemo(() => {
     return items.reduce((acc, it) => acc + Number(it.precio_aplicado || 0), 0);
   }, [items]);
+
+  const clientasSelect = useMemo(() => {
+    const activos = (Array.isArray(clientas) ? clientas : []).filter(isActivo);
+    const actual = (Array.isArray(clientas) ? clientas : []).find(
+      (c) => String(c.id_clienta) === String(idClienta)
+    );
+    if (actual && !isActivo(actual)) return [actual, ...activos];
+    return activos;
+  }, [clientas, idClienta]);
+
+  const serviciosSelect = useMemo(() => {
+    const activos = (Array.isArray(serviciosCatalogo) ? serviciosCatalogo : []).filter(isActivo);
+
+    const idsActuales = new Set(items.map((it) => String(it.id_servicio || "")));
+
+    const inactivosUsados = (Array.isArray(serviciosCatalogo) ? serviciosCatalogo : []).filter(
+      (s) => idsActuales.has(String(s.id_servicio)) && !isActivo(s)
+    );
+
+    const seen = new Set();
+    const merged = [...inactivosUsados, ...activos].filter((s) => {
+      const k = String(s.id_servicio);
+      if (seen.has(k)) return false;
+      seen.add(k);
+      return true;
+    });
+
+    return merged;
+  }, [serviciosCatalogo, items]);
+
+  const personalSelect = useMemo(() => {
+    if (!isAdmin) return [];
+    const all = Array.isArray(personalCatalogo) ? personalCatalogo : [];
+
+    const activosMasoterapeutas = all.filter((p) => {
+      const activo = isActivo(p);
+      const r = Array.isArray(p.roles) ? p.roles.map(normalizeRole) : [];
+      const esMasoterapeuta = r.includes("masoterapeuta");
+      return activo && esMasoterapeuta;
+    });
+
+    const actual = all.find((p) => String(p.id_personal) === String(idPersonal));
+    if (actual) {
+      const r = Array.isArray(actual.roles) ? actual.roles.map(normalizeRole) : [];
+      const ok = isActivo(actual) && r.includes("masoterapeuta");
+      if (!ok) return [actual, ...activosMasoterapeutas];
+    }
+    return activosMasoterapeutas;
+  }, [isAdmin, personalCatalogo, idPersonal]);
 
   function addItem() {
     setItems((prev) => [...prev, { id_servicio: "", precio_aplicado: "" }]);
@@ -162,9 +213,18 @@ export default function AtencionesEdit() {
 
     if (!items.length) return "Debes agregar al menos 1 servicio.";
 
+    const clientaOk = clientasSelect.some((c) => String(c.id_clienta) === String(idClienta));
+    if (!clientaOk) return "La clienta seleccionada no está disponible.";
+
     for (let i = 0; i < items.length; i++) {
       const it = items[i];
       if (!it.id_servicio) return `Servicio ${i + 1}: falta seleccionar servicio.`;
+
+      const servOk = serviciosSelect.some(
+        (s) => String(s.id_servicio) === String(it.id_servicio)
+      );
+      if (!servOk) return `Servicio ${i + 1}: el servicio no está disponible.`;
+
       const p = Number(it.precio_aplicado);
       if (!Number.isFinite(p) || p <= 0)
         return `Servicio ${i + 1}: precio aplicado inválido.`;
@@ -236,7 +296,9 @@ export default function AtencionesEdit() {
         </div>
 
         {error ? <p className="helper-error">{error}</p> : null}
-        {okMsg ? <p style={{ textAlign: "center", color: "green", fontWeight: 600 }}>{okMsg}</p> : null}
+        {okMsg ? (
+          <p style={{ textAlign: "center", color: "green", fontWeight: 600 }}>{okMsg}</p>
+        ) : null}
 
         <form onSubmit={onSubmit} className="form">
           <fieldset disabled={saving} style={{ border: "none", padding: 0 }}>
@@ -246,9 +308,10 @@ export default function AtencionesEdit() {
               <label>Clienta</label>
               <select value={idClienta} onChange={(e) => setIdClienta(e.target.value)}>
                 <option value="">-- Seleccionar --</option>
-                {clientas.map((c) => (
+                {clientasSelect.map((c) => (
                   <option key={c.id_clienta} value={c.id_clienta}>
                     {c.nombre} {c.apellido} (#{c.id_clienta})
+                    {!isActivo(c) ? " [INACTIVA]" : ""}
                   </option>
                 ))}
               </select>
@@ -259,9 +322,10 @@ export default function AtencionesEdit() {
                 <label>Masoterapeuta (personal)</label>
                 <select value={idPersonal} onChange={(e) => setIdPersonal(e.target.value)}>
                   <option value="">-- Seleccionar --</option>
-                  {personalCatalogo.map((p) => (
+                  {personalSelect.map((p) => (
                     <option key={p.id_personal} value={p.id_personal}>
                       {p.nombre} {p.apellido} (#{p.id_personal})
+                      {!isActivo(p) ? " [INACTIVO]" : ""}
                     </option>
                   ))}
                 </select>
@@ -301,9 +365,10 @@ export default function AtencionesEdit() {
                     onChange={(e) => onChangeServicio(idx, e.target.value)}
                   >
                     <option value="">-- Seleccionar --</option>
-                    {serviciosCatalogo.map((s) => (
+                    {serviciosSelect.map((s) => (
                       <option key={s.id_servicio} value={s.id_servicio}>
                         {s.nombre} - {moneyCLP(s.precio_base)}
+                        {!isActivo(s) ? " [INACTIVO]" : ""}
                       </option>
                     ))}
                   </select>
@@ -316,9 +381,7 @@ export default function AtencionesEdit() {
                       type="number"
                       min="1"
                       value={it.precio_aplicado}
-                      onChange={(e) =>
-                        updateItem(idx, { precio_aplicado: e.target.value })
-                      }
+                      onChange={(e) => updateItem(idx, { precio_aplicado: e.target.value })}
                     />
                   </div>
 
@@ -353,7 +416,12 @@ export default function AtencionesEdit() {
                 {saving ? "Guardando..." : "Guardar cambios"}
               </button>
 
-              <button type="button" className="btn" onClick={() => navigate(-1)} disabled={saving}>
+              <button
+                type="button"
+                className="btn"
+                onClick={() => navigate(-1)}
+                disabled={saving}
+              >
                 Cancelar
               </button>
             </div>

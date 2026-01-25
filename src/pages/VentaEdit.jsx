@@ -15,8 +15,27 @@ export default function VentaEdit() {
   const [clientas, setClientas] = useState([]);
   const [productos, setProductos] = useState([]);
 
+  const [personal, setPersonal] = useState([]);
+  const [idPersonal, setIdPersonal] = useState("");
+
   const [idCliente, setIdCliente] = useState("");
-  const [items, setItems] = useState([{ id_producto: "", cantidad: 1, precio_unitario: 0 }]);
+  const [items, setItems] = useState([
+    { id_producto: "", cantidad: 1, precio_unitario: 0 },
+  ]);
+
+  const isActivo = (x) => x?.activo === 1 || x?.activo === true || x?.activo === "1";
+
+  const personalSelect = useMemo(() => {
+    const all = Array.isArray(personal) ? personal : [];
+    const activos = all.filter(isActivo);
+
+    const actual = all.find((p) => String(p.id_personal) === String(idPersonal));
+    if (actual && !isActivo(actual)) {
+      const seen = new Set([String(actual.id_personal)]);
+      return [actual, ...activos.filter((p) => !seen.has(String(p.id_personal)))];
+    }
+    return activos;
+  }, [personal, idPersonal]);
 
   function money(n) {
     const num = Number(n || 0);
@@ -44,7 +63,10 @@ export default function VentaEdit() {
   }
 
   function addItem() {
-    setItems((prev) => [...prev, { id_producto: "", cantidad: 1, precio_unitario: 0 }]);
+    setItems((prev) => [
+      ...prev,
+      { id_producto: "", cantidad: 1, precio_unitario: 0 },
+    ]);
   }
 
   function removeItem(idx) {
@@ -60,20 +82,24 @@ export default function VentaEdit() {
         setError("");
         setOkMsg("");
 
-        const [resClientas, resProductos, resVenta] = await Promise.all([
-          http.get("/clientas"),
-          http.get("/productos"),
-          http.get(`/ventas/${id}`),
-        ]);
+        const [resClientas, resProductos, resPersonal, resVenta] =
+          await Promise.all([
+            http.get("/clientas"),
+            http.get("/productos"),
+            http.get("/personal"),
+            http.get(`/ventas/${id}`),
+          ]);
 
         if (!mounted) return;
 
         setClientas(resClientas.data || []);
         setProductos(resProductos.data || []);
+        setPersonal(resPersonal.data || []);
 
         const v = resVenta.data?.venta ?? resVenta.data;
 
-        setIdCliente(String(v?.id_cliente ?? ""));
+        setIdCliente(String(v?.id_cliente ?? v?.id_clienta ?? ""));
+        setIdPersonal(String(v?.id_personal ?? ""));
 
         const loadedItems = Array.isArray(v?.items) ? v.items : [];
         if (loadedItems.length > 0) {
@@ -89,7 +115,9 @@ export default function VentaEdit() {
         }
       } catch (e) {
         if (!mounted) return;
-        setError(e?.response?.data?.message || "Error cargando datos para editar venta");
+        setError(
+          e?.response?.data?.message || "Error cargando datos para editar venta"
+        );
       } finally {
         if (!mounted) return;
         setLoading(false);
@@ -103,7 +131,9 @@ export default function VentaEdit() {
   }, [id]);
 
   function onSelectProducto(idx, idProd) {
-    const prod = productos.find((p) => String(p.id_producto) === String(idProd));
+    const prod = productos.find(
+      (p) => String(p.id_producto) === String(idProd)
+    );
     const precioSugerido =
       prod?.precio_unitario ?? prod?.precio ?? prod?.precio_venta ?? prod?.precio_base;
 
@@ -123,10 +153,14 @@ export default function VentaEdit() {
 
     for (let i = 0; i < items.length; i++) {
       const it = items[i];
-      if (!it.id_producto) return setError(`Falta seleccionar producto en ítem #${i + 1}`);
+      if (!it.id_producto)
+        return setError(`Falta seleccionar producto en ítem #${i + 1}`);
       if (!Number.isFinite(Number(it.cantidad)) || Number(it.cantidad) <= 0)
         return setError(`Cantidad inválida en ítem #${i + 1}`);
-      if (!Number.isFinite(Number(it.precio_unitario)) || Number(it.precio_unitario) <= 0)
+      if (
+        !Number.isFinite(Number(it.precio_unitario)) ||
+        Number(it.precio_unitario) <= 0
+      )
         return setError(`Precio unitario inválido en ítem #${i + 1}`);
     }
 
@@ -136,13 +170,17 @@ export default function VentaEdit() {
       setSaving(true);
 
       const payload = {
-        id_cliente: Number(idCliente),
+        id_clienta: Number(idCliente),
         items: items.map((it) => ({
           id_producto: Number(it.id_producto),
           cantidad: Number(it.cantidad),
           precio_unitario: Number(it.precio_unitario),
         })),
       };
+
+      if (idPersonal) {
+        payload.id_personal = Number(idPersonal);
+      }
 
       await http.put(`/ventas/${id}`, payload);
 
@@ -194,7 +232,10 @@ export default function VentaEdit() {
           <fieldset disabled={saving} style={{ border: "none", padding: 0 }}>
             <div className="form-field">
               <label>Clienta</label>
-              <select value={idCliente} onChange={(e) => setIdCliente(e.target.value)}>
+              <select
+                value={idCliente}
+                onChange={(e) => setIdCliente(e.target.value)}
+              >
                 <option value="">-- Seleccionar --</option>
                 {clientas.map((c) => (
                   <option key={c.id_clienta} value={c.id_clienta}>
@@ -204,17 +245,41 @@ export default function VentaEdit() {
               </select>
             </div>
 
-            <h3 style={{ textAlign: "center", margin: "12px 0 6px" }}>Productos</h3>
+            <div className="form-field">
+              <label>Vendedora</label>
+              <select
+                value={idPersonal}
+                onChange={(e) => setIdPersonal(e.target.value)}
+              >
+                <option value="">-- Seleccionar --</option>
+                {personalSelect.map((p) => (
+                  <option key={p.id_personal} value={p.id_personal}>
+                    {p.nombre} {p.apellido} (#{p.id_personal})
+                    {!isActivo(p) ? " [INACTIVA]" : ""}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <h3 style={{ textAlign: "center", margin: "12px 0 6px" }}>
+              Productos
+            </h3>
 
             {items.map((it, idx) => (
               <div key={idx} className="item-card">
                 <div className="form-field">
                   <label>Producto</label>
-                  <select value={it.id_producto} onChange={(e) => onSelectProducto(idx, e.target.value)}>
+                  <select
+                    value={it.id_producto}
+                    onChange={(e) => onSelectProducto(idx, e.target.value)}
+                  >
                     <option value="">-- Seleccionar --</option>
                     {productos.map((p) => (
                       <option key={p.id_producto} value={p.id_producto}>
-                        {p.nombre} - {money(p.precio_unitario ?? p.precio ?? p.precio_venta ?? 0)}
+                        {p.nombre} -{" "}
+                        {money(
+                          p.precio_unitario ?? p.precio ?? p.precio_venta ?? 0
+                        )}
                       </option>
                     ))}
                   </select>
@@ -228,7 +293,9 @@ export default function VentaEdit() {
                       min={1}
                       step={1}
                       value={it.cantidad}
-                      onChange={(e) => setItem(idx, { cantidad: Number(e.target.value) })}
+                      onChange={(e) =>
+                        setItem(idx, { cantidad: Number(e.target.value) })
+                      }
                     />
                   </div>
 
@@ -239,7 +306,9 @@ export default function VentaEdit() {
                       min={1}
                       step={1}
                       value={it.precio_unitario}
-                      onChange={(e) => setItem(idx, { precio_unitario: Number(e.target.value) })}
+                      onChange={(e) =>
+                        setItem(idx, { precio_unitario: Number(e.target.value) })
+                      }
                     />
                   </div>
                 </div>
@@ -251,7 +320,11 @@ export default function VentaEdit() {
 
                 {items.length > 1 ? (
                   <div className="form-actions" style={{ marginTop: 10 }}>
-                    <button type="button" className="btn" onClick={() => removeItem(idx)}>
+                    <button
+                      type="button"
+                      className="btn"
+                      onClick={() => removeItem(idx)}
+                    >
                       Quitar item
                     </button>
                   </div>
